@@ -1,0 +1,41 @@
+\documentclass{article}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\usepackage[letterpaper,bindingoffset=0.2in,left=1in,right=1in,top=.8in,bottom=.8in,footskip=.25in]{geometry}
+
+\lhead{Nehemias Ulloa}
+\chead{Stat 644}
+\rhead{Project}
+\lfoot{}
+\cfoot{\thepage}
+\rfoot{}
+
+% Length to control the \fancyheadoffset and the calculation of \headline
+% simultaneously
+\newlength\FHoffset
+\setlength\FHoffset{1cm}
+
+\addtolength\headwidth{2\FHoffset}
+
+\fancyheadoffset{\FHoffset}
+
+% these lengths will control the headrule trimming to the left and right
+\newlength\FHleft
+\newlength\FHright
+
+% here the trimmings are controlled by the user
+\setlength\FHleft{0cm}
+\setlength\FHright{0cm}
+
+
+\begin{document}
+
+
+
+\end{document}
+
+
