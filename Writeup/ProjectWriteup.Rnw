@@ -85,11 +85,12 @@ Depending on the type of SSM, these posteriors may be difficult or failry simple
 %-----------------------------
 \subsection{Sequential Monte Carlo}
 
-The most common method of handling SSM in a bayesian context involves Sequential Monte Carlo methods (SMC). The big idea of SMC is it provides a method to sequentially approximate $p_\theta(x_{1:n}|y_{1:n})$ for $n \geq 1$ and $p_\theta(y_{1:n})$ using $N$ weighted samples called \textit{particles}; basically we approximate $p_\theta(x_1 | y_1), p_\theta(y_1)$ first, then $p_\theta(x_{1:2} | y_{1:2}), p_\theta(y_{1:2})$ second, all the way to $p_\theta(x_{1:n} | y_{1:n}), p_\theta(y_{1:n})$. The general idea behind the approximation is as follows:
-\begin{align}
-  \hat{p}_\theta(dx_{1:n} | y_{1:n}) := \sum \limits_{k=1}^N W^K_n \delta_{X^k_{1:n}}(dx_{1:n})
-\end{align}
- where $W^k_n$ is the importance weight associated with particle $X^k_{1:n}$. We can see the algrotihm below which outlines the details of the approximation. \\
+The most common method of handling SSM in a bayesian context involves Sequential Monte Carlo methods (SMC). The big idea of SMC is it provides a method to sequentially approximate $p_\theta(x_{1:n}|y_{1:n})$ for $n \geq 1$ and $p_\theta(y_{1:n})$ using $N$ weighted samples called \textit{particles}; basically we approximate $p_\theta(x_1 | y_1), p_\theta(y_1)$ first, then $p_\theta(x_{1:2} | y_{1:2}), p_\theta(y_{1:2})$ second, all the way to $p_\theta(x_{1:n} | y_{1:n}), p_\theta(y_{1:n})$. \\
+
+The driving force behind SMC is to use importance sampling (IS) to approximate $p_\theta(x_1 | y_1)$ by $q_\theta(x_1 | y_1)$. For one iterations, we would start by generating $N$ particles, $\{ X^k_1 \}$, from $q_\theta(x_1 | y_1)$, next ascribe weights, $\{ W^k_1 \}$, to the particles which take into account the difference between the two densities. Since we are just interested in one iteration, we would sample $N$ times from IS approx of $p_\theta(x_1 | y_1)$, $\hat{p}_\theta(dx_1 | y_1)$ to get particles approx distributed from $p_\theta(x_1 | y_1)$. Usually, we are interested in many interations, so we would repeat the process as outlined below noting that
+\begin{align*}
+  p_\theta(x_{1:2} | y_{1:2}) \propto p_\theta(x_1|y_1) f_\theta(x_2|x_1) g_\theta(y_2|x_2)
+\end{align*}\\
 
 Here is the algrotihm:
 \begin{enumerate}
@@ -117,10 +118,53 @@ Here is the algrotihm:
   \end{enumerate}
 \end{enumerate}
 
+There are a lot of different pieces in the algorithm; I'll limit my description to the big pieces. $A^k_{n-1}$ is the `parent' indicator at time $n-1$ for particle $X_{1:n}^k$ for $2 \leq n \leq T$. ${\bf W}_n := (W^1_n,\ldots,W_n^N)$ are the normalized important weights at time $n$, and $\mathcal{F}(\cdot | {\bf p})$ is a discrete probability distribution on $\{ 1,\ldots, m \}$ typically a multinomial resampling procedure. The $A^k_{n-1}$ variables are key because they allow us to keep track of `genealogy' of the particles which will be needed for developing a Gibbs sampler for PMCMC. 
+
+The algorithm gives this approximation at time $T$:
+\begin{align}
+  \hat{p}_\theta(dx_{1:n} | y_{1:n}) := \sum \limits_{k=1}^N W^K_n \delta_{X^k_{1:n}}(dx_{1:n})
+\end{align}
+
+The SMC also provides us with an approximation to the marginal density $p_\theta(y_{1:T})$:
+\begin{align}
+  \hat{p}_\theta(y_{1:T}) := \hat{p}_\theta(y_1) \prod \limits_{n=2}^T \hat{p}_\theta(y_n|y_{1:n-1})
+\end{align}
+where
+\begin{align*}
+  \hat{p}_\theta(y_n|y_{1:n-1}) = \frac{1}{N} \sum \limits_{k=1}^N w_n(X^k_{1:n})
+\end{align*}
+
+So through the use of SMC we are able to get a approx of the marginal and joint distributions, but there are some issues with SMC. The obvious question is what happens when $T$ is very large? We can imagine when $T$ is very large, the number of distinct $x_n$ goes down. So basically in order to keep up with an increasing $T$ we'd have to keep increasing $k$ but that isn't practically feasible. This is becomes apparent when SMC is used to fit $p(\theta, x_{1:T}|y_{1:T})$ according to Andrieu et al.(1999), Fearnhead (2002) and Storvik (2002).
+
+
 
 
 %-----------------------------
 \subsection{Markov chain Monte Carlo}
+MCMC methods for state space models focus on sampling from $p(\theta, x_{1:T}|y_{1:T})$ by switching in between sampling from $x_{1:T}|\theta$ and $\theta|x_{1:T}$. Typically, $\theta|x_{1:T}$ is easy to sample from but $\theta|x_{1:T}$ rarely is so there is a workaround that splits $x_{1:T}$ into $K$ adjacent blocks and update block by block. \\
+
+{\bf Ex} Update $x_{n:n+K-1}$ like so:
+\begin{align}
+  p_\theta(x_{n:n+K-1}|y_{1:T},x_{1:n-1},x_{n+K:T}) \propto \prod \limits_{k=n}^{n+K} f_\theta(x_k|x_{k-1}) \prod \limits_{k=n}^{n+K-1} g_\theta(y_k|x_k) \label{eq:mcmcapprox}
+\end{align}
+
+This workaround is fine unless $K$ becomes too large. If it becomes to large, then we will have trouble creating good approximations of Eq \ref{eq:mcmcapprox}; so this will force us to keep $K$ small and cause us to spend more computational time to explore the support of $x_{1:T}|\theta$. So the only way to move forward is to simulate from joint proposal, but this is less than ideal since as $T$ increases, the proposal's performance doesn't get better since it doesn't use the information.
+
+
+
+
+
+
+
+%-----------------------------
+\subsection{Particle Markov chain Monte Carlo}
+
+
+
+
+
+
+
 
 
 
