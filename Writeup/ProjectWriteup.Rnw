@@ -31,11 +31,50 @@
 \setlength\FHleft{0cm}
 \setlength\FHright{0cm}
 
+\doublespacing
 
 \begin{document}
-In this review, I will be looking at {\it }
 
+%-----------------------------
+\section{Introduction}
+Monte Carlo methods have quickly become one of the most common methods of conducting statistical analysis. This was brought on partly due to the ease of access to powerful computing which previously made these methods unreachable from the layman. However, now that everyone is able to do basic MCMC, the problems researchers bring have become increasingly more difficult to analyze. In this review, we will be looking at the paper, \textit{Particle Markov Chain Monte Carlo Methods}, by Andrieu et al.(2010)\ref{andrieu10} which provides a way to combat the complexity in incoming problems. This paper gives an introduction to Particle Markov Chain Monte Carlo (PMCMC) and gives some intuition behind the algorithm. For this review of the paper, I will focus on introducing the PMCMC; developing the algorithm and intuition behind PMCMC; and provide asymptotic results of the PMCMC algorithm.
+
+The paper focuses on a new method called Particle Markov chain Monte Carlo or PMCMC for short. The basic idea behind PMCMC is to combine the best aspects of MCMC methods and Sequential Monte Carlo (SMC) methods. The goal of the algorithm is to use SMC to create proposal densities for the MCMC algorithms. The motivation for PMCMC comes from state space models (SSM), but the ideas and algorithm can be expanded to other high dimensional problems. 
+
+In general, the goal of a MCMC algorithm is to sample from the target distribution, say $\pi$. Usually, we cannot sample from $\pi$ directly so we choose a proposal distribution which captures the essence of the target distribution and sample from the that. The hardest part of this is the balance between choosing a proposal distribution that adequately describes/captures the target distribution and choosing a proposal distribution that is easy to implement. PMCMC aims to provide a proposal distribution that balances these two features.
+
+
+%-----------------------------
+\subsection{State Space Models}
+
+Before we talk about the PMCMC algorithm, we first need to talk about SMC, but before we talk about SMC, we should introduce the motivating example of SMC which are state space models (SSMs). State space models (also called hidden Markov models), $\{ X_n ; n \geq 1 \}$, can be defined by:
+\begin{itemize}
+  \item Initial density $X_1 \sim \mu_\theta(\cdot)$
+  \item Transitional probability density \\
+  \begin{align}
+  X_{n+1}|(X_n = x) \sim f_\theta(\cdot|x) \exists \theta \in \Theta
+  \end{align}
+\end{itemize}
+
+Usually, we never see $\{ X_n \}$, but we will ''observe`` them through \{ Y_n ; n \geq 1 \}. These \{ Y_n \} are conditionally independent given \{ X_n \}. We denote their marginal probability density function by 
+\begin{align}
+Y_n | (X_1,\ldots,X_n = x,\ldots,X_m) \sim g_\theta(\cdot|x) \text{ for } 1 \leq n \leq m
+\end{align}
+
+Notation note: For random variables, capitol letters will be used: $X_n$ and lower case will be used for thier values. Lastly, we will denote a sequence, $\{ z_n \}$, as follows $z_{i:j} = (z_i, z_{i+1},\ldots,z_j)$.
+
+
+%-----------------------------
+\subsection{Sequential Monte Carlo}
+
+
+%------------------------------------%
+%           Bibliography             %
+%------------------------------------%
+
+\nocite{*}
+\bibliographystyle{siam}
+
+\bibliography{writeup_references}
 
 \end{document}
-
-
