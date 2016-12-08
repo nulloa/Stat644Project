@@ -210,12 +210,25 @@ This still doesn't give us a nice form to work with but this allows us to embed 
 
 
 \begin{theorem}
-Shows invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PIMH update
+Assume assumption 2. Then for an $N \geq 1$, the PIMH update is a standard IMH update on the extended space ${\bf X}$ with target density $\tilde{\pi}^N$ and proposal $q^N$.
 \end{theorem}
 
+
 \begin{theorem}
-Shows PIMH is erogodic
+Assume assumptions 1 and 2. Then 
+\begin{enumerate}
+  \item the PIMH sampler generates a sequence $\{ X_{1:P}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ X_{1:P}(i) \in \cdot \} \}$ satisfy 
+    \begin{equation*}
+    \| \mathcal{L}^N \{ X_{1:P}(i) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf
+    \end{equation*}
+  %
+  \item if assumption 3 holds, then there exists $\rho_P \in [0,1)$ s.t. $\forall i \geq 1$ and $x_{1:P} \in \mathcal{X}^P$ 
+    \begin{equation*}
+    \| \mathcal{L}^N \{ X_{1:P}(i) \in \cdot | X_{1:P}(0)=x_{1:P} \} - \pi(\cdot) \| \leq \rho^i_P
+    \end{equation*}
+\end{enumerate}
 \end{theorem}
+
 
 
 Also the authors claim that the acceptance probability converges to $1$ as $N \rightarrow \infty$ since $\hat{p}_\theta(y_{1:T})^*$ and $\hat{p}_\theta(y_{1:T})(i-1)$ are consistent estimators of $p_\theta(y_{1:T})$
@@ -259,13 +272,20 @@ The looking at the acceptance probability, it is natural to use SMC approximatio
 \end{enumerate}
 
 
+
+The following thereom shows the invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PMMH update and erogodicity of PMMH.
 \begin{theorem}
-Shows invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PIMH update in THM 4
+Assume assumption 2 holds. Then $\forall N \geq 1$
+\begin{enumerate}
+  \item the PMMH update is an MH update defined on the extended space $\Theta \times X$ with a target density $\tilde{\pi}$
+  %
+  \item additionally, if assumptions 5 and 6 are met, the PMMH sampler generates a sequence $\{ \theta(i), X_{1:P}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ \theta(i), X_{1:P}(i) \in \cdot \} \}$ satisfy 
+    \begin{equation*}
+    \| \mathcal{L}^N \{ \theta(i), X_{1:P}(i) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf
+    \end{equation*}
+\end{enumerate}
 \end{theorem}
 
-\begin{theorem}
-Shows PMMH is erogodic in THM 4
-\end{theorem}
 
 
 %-----------------------------
@@ -282,7 +302,7 @@ Lastly, a Particle Gibbs sampler is presented as an alternative to MMH for sampl
     \item compute weights $w_1(X^k_1)$ from equation (6) and normalize the weights creating $W_1^k$
   \end{enumerate}
 %
-  \item[] \textit{Step 3}: $2 \geq n \geq T$
+  \item[] \textit{Step 3}: $2 \leq n \leq T$
   \begin{enumerate}
     \item for $k \neq B_n$, sample $A_{n-1}^k \sim \mathcal{F}(\cdot|{\bf W_{n-1}})$
     %
@@ -307,21 +327,26 @@ Then the particle Gibbs sampler uses this like so:
 \end{enumerate}
 
 
-
+This theorem shows invariance of $p_\theta(x_{1:T}|y_{1:T})$ holds after a Particle Gibbs update and is erogodic.
 \begin{theorem}
-Shows invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PIMH update in THM 5
+Assume assumption 2. Then
+\begin{enumerate}
+  \item the PG updates defines a transition kernel on the extended space $\Theta \times {\bf X}$ of invariant density $\tilde{\pi}^N \quad \forall N \geq 1$
+  %
+  \item if assumption 5-7 hold, the PG sampler generates a sequence $\{ \theta(i), X_{1:P}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ (\theta(i), X_{1:P}(i)) \in \cdot \} \}$ satisfy 
+    \begin{equation*}
+    \| \mathcal{L}^N \{ (\theta(i), X_{1:P}(i)) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf \quad \exists \quad N \geq 2
+    \end{equation*}
+\end{enumerate}
 \end{theorem}
 
-\begin{theorem}
-Shows PMMH is erogodic in THM 5
-\end{theorem}
 
 
 
 
 %-----------------------------
-\section{Particle Gibbs sampler}
- In this review, we have outlined and given some intuition behind PMCMC. We have limited the review to the simple case using SSMs as the motivation. PMCMC methods have been generalized to handle models much more complicated the SSMs. While these methods are better than using SMC or MCMC alone, there are some issues as well. At every iteration in the PMCMC, $N$ particles need to be generated. This will lead to more computation and time in the algorithm. Overall, I feel like this a minor concern given the benefits of the PMCMC.
+\section{Conclusion}
+ In this review, we have outlined and given some intuition behind PMCMC. We have limited the review to the simple case using SSMs as the motivation. PMCMC methods have been generalized to handle models much more complicated the SSMs. While these methods are better than using SMC or MCMC alone, there are some issues as well. At every iteration in the PMCMC, $N$ particles need to be generated. This will lead to more computation and time in the algorithm. Overall, I feel like this a minor concern given the benefits of the PMCMC. We also gave thereoms which helped back the properties of PMCMC in its various settings.
 
 
 
