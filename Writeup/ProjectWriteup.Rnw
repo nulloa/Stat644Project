@@ -53,7 +53,7 @@ In general, the goal of a MCMC algorithm is to sample from the target distributi
 
 
 %-----------------------------
-\section{PMCMC}
+\section{Background}
 
 
 %-----------------------------
@@ -139,6 +139,7 @@ The algorithm gives this approximation at time $T$:
 \begin{align}
   \hat{p}_\theta(dx_{1:n} | y_{1:n}) := \sum \limits_{k=1}^N W^K_n \delta_{X^k_{1:n}}(dx_{1:n})
 \end{align}
+where $\delta$ is the Dirac measure.
 
 The SMC also provides us with an approximation to the marginal density $p_\theta(y_{1:T})$:
 \begin{align}
@@ -267,34 +268,43 @@ Shows PMMH is erogodic in THM 4
 \end{theorem}
 
 
-
-Lastly, a Particle Gibbs sampler is presented as an alternative to MMH for sampling $p(\theta, x_{1:T}|y_{1:T})$ by sampling from $p(\theta|x_{1:T},y_{1:T})$ and $p_\theta(x_{1:T}|y_{1:T})$. Usually it is possible to sample from $p(\theta|x_{1:T},y_{1:T})$ so it allows us to skip creating a proposal density to sample $\theta$. The usual usage of the SMC approximation to $p_\theta(x_{1:T}|y_{1:T})$ is not possible here since it will not give us an invariant posterior. The authors present a fix to this problem using a \textit{conditional} SMC update. The basic idea is similar except one $X_{1:T}$ with ancestry $B_{1:T}$ is ensured to be there through all the resampling steps.
+%-----------------------------
+\subsubsection{Particle Gibbs sampler}
+Lastly, a Particle Gibbs sampler is presented as an alternative to MMH for sampling $p(\theta, x_{1:T}|y_{1:T})$ by sampling from $p(\theta|x_{1:T},y_{1:T})$ and $p_\theta(x_{1:T}|y_{1:T})$. Usually it is possible to sample from $p(\theta|x_{1:T},y_{1:T})$ so it allows us to skip creating a proposal density to sample $\theta$. The usual usage of the SMC approximation to $p_\theta(x_{1:T}|y_{1:T})$ is not possible here since it will not give us an invariant posterior. The authors present a fix to this problem using a \textit{conditional} SMC update. The basic idea is similar except one $X_{1:T}$ with ancestry $B_{1:T}$ is ensured to be there through all the resampling steps. Here is the outline of the \textit{conditional} SMC update:
 
 \begin{enumerate}
-  \item[] \textit{Step 1}
+  \item[] \textit{Step 1} let $X_{1:T} = (X_1^{B_1}, X_1^{B_1},\ldots,X_T^{B_T})$ be a path with ancestry $B_{1:T}$
 %
-  \item[] \textit{Step 2}: i=0
+  \item[] \textit{Step 2}: $n=1$
   \begin{enumerate}
-    \item set $\theta(0)$ to some value
+    \item for $k \neq B_1$, sample $X_1^k \sim q(\cdot|y_1)$
     %
-    \item run SMC algorithm for $p_{\theta(0)}(x_{1:T}|y_{1:T})}$, sample $X_{1:T}(0) \sim \hat{p}_{\theta(0)}(\cdot|y_{1:T})$ and $\hat{p}_\theta(y_{1:T})(0)$ is the marginal likelihood estimate
+    \item compute weights $w_1(X^k_1)$ from equation (6) and normalize the weights creating $W_1^k$
   \end{enumerate}
 %
-  \item[] \textit{Step 3}: $i \geq 1$
+  \item[] \textit{Step 3}: $2 \geq n \geq T$
   \begin{enumerate}
-    \item sample $\theta^* \sim q\{ \cdot | \theta(i-1) \}$
+    \item for $k \neq B_n$, sample $A_{n-1}^k \sim \mathcal{F}(\cdot|{\bf W_{n-1}})$
     %
-    \item run SMC algorithm for $p_{\theta^*}(x_{1:T}|y_{1:T})$ \\
-    sample $X^*_{1:T} \sim \hat{p}_{\theta^*}(\cdot|y_{1:T})$ and $\hat{p}_{\theta^*}(y_{1:T})$ is the marginal likelihood estimate
+    \item for $k \neq B_n$, ample $X_n^k \sim q(\cdot|y_n, X_{n-1}^{A_{n-1}^k})$
     %
-    \item With probability,
-    \begin{equation*}
-       min \Bigg( 1, \frac{\hat{p}_{\theta^*}(y_{1:T})p(\theta^*)}{\hat{p}_{\theta(i-1)}(y_{1:T})p\{\theta(i-1)\}}\frac{q\{(\theta(i-1)|\theta^*)\}}{q\{(\theta^*|\theta(i-1))\}} \Bigg)
-    \end{equation*}
-    set $\theta(i) = \theta^*$, $X_{1:T}(i) = X^*_{1:T}$ and $\hat{p}_{\theta(i)}(y_{1:T})(i) = \hat{p}_{\theta^*}(y_{1:T})$ otherwise stay the same.
+    \item compute weights $w_1(X^k_1)$ from equation (7) and normalize the weights creating $W_1^k$
   \end{enumerate}
 \end{enumerate}
 
+Then the particle Gibbs sampler uses this like so:
+\begin{enumerate}
+  \item[] \textit{Step 1} $i = 0$, set $\theta(0)$, $X_{1:T}(0)$, $B_{1:T}(0)$ to some values
+%
+  \item[] \textit{Step 2}: $i \geq 1$
+  \begin{enumerate}
+    \item sample $\theta(i) \sim p\{ \cdot | y_{1:T}, X_{1:T}(i-1) \}$
+    %
+    \item run \textit{conditional} SMC for $p_{\theta(i)}(x_{1:T}|y_{1:T})$ conditional on $X_{1:T}(i-1)$ and $B_{1:T}(i-1)$
+    %
+    \item sample $X_{1:T}(i) \sim \hat{p}_{\theta(i)}(\cdot|y_{1:T})$
+  \end{enumerate}
+\end{enumerate}
 
 
 
