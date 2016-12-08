@@ -128,7 +128,17 @@ In Bayesian analysis, we want to conduct inference on two posteriors:
 %------------------------------------------------
 
 \begin{frame}[fragile]
-Talk about Dynamic Linear Models here.
+\begin{enumerate}
+  \item Generate $N$ particles, $\{ X^k_1 \}$, from proposal $q_\theta(x_1 | y_1)$
+  \item Calculate weights, $\{ W^k_1 \}$, for each particle
+  \item for $n \geq 2$, use weights in sampling $X^k_n$ from q_\theta(\cdot|y_n, W^k_1)$
+\end{enumerate}
+
+At time $T$, the approximation is:
+\begin{align}
+  \hat{p}_\theta(dx_{1:n} | y_{1:n}) := \sum \limits_{k=1}^N W^K_n \delta_{X^k_{1:n}}(dx_{1:n})
+\end{align}
+where $\delta$ is the Dirac measure
 \end{frame}
 
 
