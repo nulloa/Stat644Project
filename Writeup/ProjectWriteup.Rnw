@@ -6,6 +6,14 @@
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \usepackage[letterpaper,bindingoffset=0.2in,left=1in,right=1in,top=.8in,bottom=.8in,footskip=.25in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsthm}
+
+\newtheorem{theorem}{Theorem}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
 
 \lhead{Nehemias Ulloa}
 \chead{Stat 644}
@@ -53,14 +61,17 @@ In general, the goal of a MCMC algorithm is to sample from the target distributi
 
 Before we talk about the PMCMC algorithm, we first need to talk about SMC, but before we talk about SMC, we should introduce the motivating example of SMC which are state space models (SSMs). 
 
-{\bf Definition} State space models (also called hidden Markov models), $\{ X_n ; n \geq 1 \}$, are be defined by:
+\theoremstyle{definition}
+\begin{definition}
+State space models (also called hidden Markov models), $\{ X_n ; n \geq 1 \}$, are be defined by:
 \begin{itemize}
   \item Initial density $X_1 \sim \mu_\theta(\cdot)$
   \item Transitional probability density 
   \begin{align}
-  X_{n+1}|(X_n = x) \sim f_\theta(\cdot|x) \exists \theta \in \Theta
+  X_{n+1}|(X_n = x) \sim f_\theta(\cdot|x) \quad \exists \> \theta \in \Theta
   \end{align}
 \end{itemize}
+\end{definition}
 
 Usually, we never see $\{ X_n \}$, but we will ``observe'' them through $\{ Y_n ; n \geq 1 \}$. These $\{ Y_n \}$ are conditionally independent given $\{ X_n \}$. We denote their marginal probability density function by 
 \begin{align}
@@ -197,12 +208,14 @@ This still doesn't give us a nice form to work with but this allows us to embed 
 \end{enumerate}
 
 
-{\bf Thereom 2}
+\begin{theorem}
 Shows invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PIMH update
+\end{theorem}
 
-
-{\bf Thereom 3}
+\begin{theorem}
 Shows PIMH is erogodic
+\end{theorem}
+
 
 Also the authors claim that the acceptance probability converges to $1$ as $N \rightarrow \infty$ since $\hat{p}_\theta(y_{1:T})^*$ and $\hat{p}_\theta(y_{1:T})(i-1)$ are consistent estimators of $p_\theta(y_{1:T})$
 
@@ -210,7 +223,94 @@ Note that if your only goal is to estimate $p_\theta(x_{1:T}|y_{1:T})$ then just
 
 
 %-----------------------------
-\subsubsection{Particle independent Metropolis-Hastings sampler}
+\subsubsection{Particle marginal Metropolis-Hastings sampler}
+With Particle marginal Metropolis-Hastings, the goal is to sample from $p(\theta, x_{1:T} | y_{1:T})$. In general here we assume we can sample from $p_\theta( x_{1:T} | y_{1:T})$, and we can decompose $p(\theta, x_{1:T} | y_{1:T}) = p(\theta | y_{1:T}) p_\theta(x_{1:T} | y_{1:T})$ so the focus is $p(\theta|y_{1:T})$. The intuitive proposal is
+\begin{equation*}
+  q \{ (\theta^*, x^*_{1:T}) | (\theta, x_{1:T}) \} = q(\theta^* | \theta) p_{\theta^*}(x^*_{1:T} | y_{1:T})
+\end{equation*}
+Then the acceptance ratio for the MH algorithm is
+\begin{equation}
+ \frac{p(\theta^*, x^*_{1:T})|(y_{1:T})}{p(\theta, x_{1:T})|(y_{1:T})}\frac{q \{ (\theta, x_{1:T}) | (\theta^*, x^*_{1:T}) \}}{q \{ (\theta^*, x^*_{1:T}) | (\theta, x_{1:T}) \}} = \frac{p_{\theta^*}(y_{1:T})p(\theta^*)}{p_\theta(y_{1:T})p(\theta)}\frac{q(\theta|\theta^*)}{q(\theta^*|\theta)}
+\end{equation}
+The looking at the acceptance probability, it is natural to use SMC approximation for $p_\theta(x_{1:T}|y_{1:T})$ and $p_\theta(y_{1:T})$ in the PMMH update.
+
+\begin{enumerate}
+  \item[] \textit{Step 1}: $i=0$
+  \begin{enumerate}
+    \item set $\theta(0)$ to some value
+    %
+    \item run SMC algorithm for $p_{\theta(0)}(x_{1:T}|y_{1:T})$, sample $X_{1:T}(0) \sim \hat{p}_{\theta(0)}(\cdot|y_{1:T})$ and $\hat{p}_\theta(y_{1:T})(0)$ is the marginal likelihood estimate
+  \end{enumerate}
+%
+  \item[] \textit{Step 2}: $i \geq 1$
+  \begin{enumerate}
+    \item sample $\theta^* \sim q\{ \cdot | \theta(i-1) \}$
+    %
+    \item run SMC algorithm for $p_{\theta^*}(x_{1:T}|y_{1:T})$ \\
+    sample $X^*_{1:T} \sim \hat{p}_{\theta^*}(\cdot|y_{1:T})$ and $\hat{p}_{\theta^*}(y_{1:T})$ is the marginal likelihood estimate
+    %
+    \item With probability,
+    \begin{equation*}
+       min \Bigg( 1, \frac{\hat{p}_{\theta^*}(y_{1:T})p(\theta^*)}{\hat{p}_{\theta(i-1)}(y_{1:T})p\{\theta(i-1)\}}\frac{q\{(\theta(i-1)|\theta^*)\}}{q\{(\theta^*|\theta(i-1))\}} \Bigg)
+    \end{equation*}
+    set $\theta(i) = \theta^*$, $X_{1:T}(i) = X^*_{1:T}$ and $\hat{p}_{\theta(i)}(y_{1:T})(i) = \hat{p}_{\theta^*}(y_{1:T})$ otherwise stay the same.
+  \end{enumerate}
+\end{enumerate}
+
+
+\begin{theorem}
+Shows invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PIMH update in THM 4
+\end{theorem}
+
+\begin{theorem}
+Shows PMMH is erogodic in THM 4
+\end{theorem}
+
+
+
+Lastly, a Particle Gibbs sampler is presented as an alternative to MMH for sampling $p(\theta, x_{1:T}|y_{1:T})$ by sampling from $p(\theta|x_{1:T},y_{1:T})$ and $p_\theta(x_{1:T}|y_{1:T})$. Usually it is possible to sample from $p(\theta|x_{1:T},y_{1:T})$ so it allows us to skip creating a proposal density to sample $\theta$. The usual usage of the SMC approximation to $p_\theta(x_{1:T}|y_{1:T})$ is not possible here since it will not give us an invariant posterior. The authors present a fix to this problem using a \textit{conditional} SMC update. The basic idea is similar except one $X_{1:T}$ with ancestry $B_{1:T}$ is ensured to be there through all the resampling steps.
+
+\begin{enumerate}
+  \item[] \textit{Step 1}
+%
+  \item[] \textit{Step 2}: i=0
+  \begin{enumerate}
+    \item set $\theta(0)$ to some value
+    %
+    \item run SMC algorithm for $p_{\theta(0)}(x_{1:T}|y_{1:T})}$, sample $X_{1:T}(0) \sim \hat{p}_{\theta(0)}(\cdot|y_{1:T})$ and $\hat{p}_\theta(y_{1:T})(0)$ is the marginal likelihood estimate
+  \end{enumerate}
+%
+  \item[] \textit{Step 3}: $i \geq 1$
+  \begin{enumerate}
+    \item sample $\theta^* \sim q\{ \cdot | \theta(i-1) \}$
+    %
+    \item run SMC algorithm for $p_{\theta^*}(x_{1:T}|y_{1:T})$ \\
+    sample $X^*_{1:T} \sim \hat{p}_{\theta^*}(\cdot|y_{1:T})$ and $\hat{p}_{\theta^*}(y_{1:T})$ is the marginal likelihood estimate
+    %
+    \item With probability,
+    \begin{equation*}
+       min \Bigg( 1, \frac{\hat{p}_{\theta^*}(y_{1:T})p(\theta^*)}{\hat{p}_{\theta(i-1)}(y_{1:T})p\{\theta(i-1)\}}\frac{q\{(\theta(i-1)|\theta^*)\}}{q\{(\theta^*|\theta(i-1))\}} \Bigg)
+    \end{equation*}
+    set $\theta(i) = \theta^*$, $X_{1:T}(i) = X^*_{1:T}$ and $\hat{p}_{\theta(i)}(y_{1:T})(i) = \hat{p}_{\theta^*}(y_{1:T})$ otherwise stay the same.
+  \end{enumerate}
+\end{enumerate}
+
+
+
+
+\begin{theorem}
+Shows invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PIMH update in THM 5
+\end{theorem}
+
+\begin{theorem}
+Shows PMMH is erogodic in THM 5
+\end{theorem}
+
+
+
+
+
+
 
 
 
