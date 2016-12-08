@@ -98,7 +98,7 @@ The driving force behind SMC is to use importance sampling (IS) to approximate $
 
 Here is the algrotihm:
 \begin{enumerate}
-  \item \textit{Step 1:} at time $n=1$,
+  \item[] \textit{Step 1:} at time $n=1$,
   \begin{enumerate}
     \item sample $X^k_1 \sim q_\theta(\cdot|y_1)$
     \item compute \& normalize weights
@@ -109,7 +109,7 @@ Here is the algrotihm:
   \end{enumerate}
 %
 %
-  \item \textit{Step 2:} at time $n=2,\ldots,T$,
+  \item[] \textit{Step 2:} at time $n=2,\ldots,T$,
   \begin{enumerate}
     \item sapmle $A^k_{n-1} \sim \mathcal{F}(\cdot | {\bf W}_{n-1})$
     \item sample $X^k_n \sim q_\theta(\cdot|y_n, X_{n-1}^{A^k_{n-1}})$ and set $X_{1:n}^k := (X_{1:n-1}^{A^k_{n-1}}, X^k_n)$
@@ -165,14 +165,52 @@ The Particle MCMC algrotihm is the entire focus of this paper. This algorithm at
 
 
 %-----------------------------
-\subsection{Particle independent Metropolis-Hastings sampler}
+\subsubsection{Particle independent Metropolis-Hastings sampler}
+With Particle independent Metropolis-Hastings sampler the goal is still to $p_\theta(x_{1:T}|y_{1:T})$ execpt for now we are going to include SMC approximations in our proposal. Normally we choose a proposal that will leave $p_\theta(x_{1:T}|y_{1:T})$ invariant. In order for this to happen we need our proposal to suggest candidates $X^*_{1:T}$ that are accpted with probability
+\begin{equation*}
+ min \Bigg( 1, \frac{p_\theta(X^*_{1:T}|y_{1:T})}{p_\theta(X_{1:T}|y_{1:T})} \frac{q_\theta(X_{1:T}|y_{1:T})}{q_\theta(X_{1:T}|y_{1:T})} \Bigg)
+\end{equation*}
+given current state $X_{1:T}$. (Also side note, the paper included some very unintuitive notation for the min operator.) \\
+
+In the best case scenario, $q_\theta(X_{1:T}|y_{1:T}) = p_\theta(X_{1:T}|y_{1:T})$, but if that were the case then there would be no need for a smapler. The idea is to simply use the SMC approximation of $p_\theta(X_{1:T}|y_{1:T})$, but it's not possible to use it directly since the marginal distribution of $X^*_{1:T}$ is necessary to get the acceptance probability. To get over this bump, they suggest taking the expectation of the approximation over all the random variables given by SMC algorithm and consider this as the proposal i.e. 
+\begin{equation*}
+  q_\theta(dx_{1:T}|y_{1:T})  = E(\hat{p}_\theta(dx_{1:T}|y_{1:T}))
+\end{equation*}
+
+This still doesn't give us a nice form to work with but this allows us to embed our sampling of $p_\theta(X_{1:T}|y_{1:T})$ into a sampling from another well-chosen distribution that covers fits our idea of having a space with all the random variables. 
+
+\begin{enumerate}
+  \item[] \textit{Step 1}: i=0 \& run SMC algorithm for $p_\theta(x_{1:T}|y_{1:T})$.\\
+  Sample $X_{1:T}(0) \sim \hat{p}_\theta(\cdot|y_{1:T})$ and $\hat{p}_\theta(y_{1:T})(0)$
+%
+%
+  \item[] \textit{Step 2}: $i \geq 1$
+  \begin{enumerate}
+    \item run SMC algorithm for $p_\theta(x_{1:T}|y_{1:T})$ \& sample $X^*_{1:T} \sim \hat{p}_\theta(\cdot|y_{1:T})$ and $\hat{p}_\theta(y_{1:T})$
+    %
+    \item With probability,
+    \begin{equation*}
+       min \Bigg( 1, \frac{\hat{p}_\theta(y_{1:T})^*}{\hat{p}_\theta(y_{1:T})(i-1)} \Bigg)
+    \end{equation*}
+    set $X_{1:T}(i) = X^*_{1:T}$ and $\hat{p}_\theta(y_{1:T})(i) = \hat{p}_\theta(y_{1:T})^*$ otherwise stay the same.
+  \end{enumerate}
+\end{enumerate}
 
 
+{\bf Thereom 2}
+Shows invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PIMH update
 
 
+{\bf Thereom 3}
+Shows PIMH is erogodic
+
+Also the authors claim that the acceptance probability converges to $1$ as $N \rightarrow \infty$ since $\hat{p}_\theta(y_{1:T})^*$ and $\hat{p}_\theta(y_{1:T})(i-1)$ are consistent estimators of $p_\theta(y_{1:T})$
+
+Note that if your only goal is to estimate $p_\theta(x_{1:T}|y_{1:T})$ then just using the SMC algorithm may be a better choice, but rather consider this an option as a step within a larger MCMC algorithm.
 
 
-
+%-----------------------------
+\subsubsection{Particle independent Metropolis-Hastings sampler}
 
 
 
