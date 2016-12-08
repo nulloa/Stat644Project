@@ -10,6 +10,7 @@
 \usepackage[english]{babel}
 \usepackage{amsthm}
 
+\newtheorem{assumption}{Assumption}
 \newtheorem{theorem}{Theorem}
 
 \theoremstyle{definition}
@@ -209,22 +210,56 @@ This still doesn't give us a nice form to work with but this allows us to embed 
 \end{enumerate}
 
 
+These next few assumptions and thereoms establish the invariance of $p_\theta(x_{1:T}|y_{1:T})$ after the PIMH update and ergodicity of the PIMH sampler.
+
+\begin{assumption}\label{asm:pap1}
+For $n=1,\ldots,T$, we have $\mathcal{S}_n \subseteq \mathcal{Q}_n$
+where
+\begin{align*}
+\mathcal{S}_n & = \{ x_{1:T} \in \mathcal(X)^n: p(x_{1:T}) > 0 \} \quad n \geq 1 \\
+\mathcal{Q}_n & = \{ x_{1:T} \in \mathcal(X)^n:  p(x_{1:T-1}) q(x_n|x_{1:T-1}) > 0\} \quad n \geq 1
+\end{align*}
+\end{assumption}
+
+Essentially, Assumption \ref{asm:pap1} is saying that the we can use importance density $p(x_{1:T-1}) \times q(x_n|x_{1:T-1})$ to approximate $p(x_{1:T})$ and Assumption \ref{asm:pap2} basically has to do with resampling the $X_{1:T}$ according to the weights.
+
+\begin{assumption}\label{asm:pap2}
+For any $k=1,\ldots,N$ and $n=1,\ldots,T$, the resampling scheme satisfies 
+\begin{equation}
+E(O^k_n|{\bf W}_n) = NW^K_n
+\end{equation}
+and
+\begin{equation}
+r(A^K_n = m | {\bf W}_n) = W^m_n
+\end{equation}
+\end{assumption}
+
+\begin{assumption}\label{asm:pap3}
+$\exists\text{ a}$ sequence of constants $\{ C_n; n = 1,\ldots,\bar{T} \}$ for some integer $\bar{T}$ s.t. for any $x_{1:n} \in \mathcal{S}_n$
+\begin{equation}
+w_n(x_{1:n}) \leq C_n
+\end{equation}
+\end{assumption}
+
+Assumption \ref{asm:pap3} allows us to get a bound condition for the importance weights.
+
+
 \begin{theorem}
-Assume assumption 2. Then for an $N \geq 1$, the PIMH update is a standard IMH update on the extended space ${\bf X}$ with target density $\tilde{\pi}^N$ and proposal $q^N$.
+Assume Assumption \ref{asm:pap2}. Then for an $N \geq 1$, the PIMH update is a standard IMH update on the extended space ${\bf X}$ with target density $\tilde{\pi}^N$ and proposal $q^N$.
 \end{theorem}
 
 
 \begin{theorem}
-Assume assumptions 1 and 2. Then 
+Assume Assumptions \ref{asm:pap1} and \ref{asm:pap2}. Then 
 \begin{enumerate}
-  \item the PIMH sampler generates a sequence $\{ X_{1:P}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ X_{1:P}(i) \in \cdot \} \}$ satisfy 
+  \item the PIMH sampler generates a sequence $\{ X_{1:T}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ X_{1:T}(i) \in \cdot \} \}$ satisfy 
     \begin{equation*}
     \| \mathcal{L}^N \{ X_{1:P}(i) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf
     \end{equation*}
   %
-  \item if assumption 3 holds, then there exists $\rho_P \in [0,1)$ s.t. $\forall i \geq 1$ and $x_{1:P} \in \mathcal{X}^P$ 
+  \item if assumption \ref{asm:pap3} holds, then there exists $\rho_T \in [0,1)$ s.t. $\forall i \geq 1$ and $x_{1:T} \in \mathcal{X}^T$ 
     \begin{equation*}
-    \| \mathcal{L}^N \{ X_{1:P}(i) \in \cdot | X_{1:P}(0)=x_{1:P} \} - \pi(\cdot) \| \leq \rho^i_P
+    \| \mathcal{L}^N \{ X_{1:T}(i) \in \cdot | X_{1:T}(0)=x_{1:T} \} - \pi(\cdot) \| \leq \rho^i_T
     \end{equation*}
 \end{enumerate}
 \end{theorem}
@@ -273,15 +308,24 @@ The looking at the acceptance probability, it is natural to use SMC approximatio
 
 
 
-The following thereom shows the invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PMMH update and erogodicity of PMMH.
+The following thereom shows the invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PMMH update and erogodicity of PMMH. Assumption \ref{asm:pap5} has the same idea as Assumption \ref{asm:pap1} in that it allows us to use a importance density in approximation. Assumption \ref{asm:pap6} is a key assumption that ensures we have a converging MH algorithm.
+
+\begin{assumption}\label{asm:pap5}
+For any $\theta \in \mathcal{S}$, we have $\mathcal{S}^\theta_n \subseteq \mathcal{Q}^\theta_n$ for $n=1,\ldots,T$.
+\end{assumption}
+
+\begin{assumption}\label{asm:pap6}
+The MH sampler of target density $\pi(\theta)$ and proposal density $q(\theta^*|\theta)$ is irreducible and aperiodic (and hence converges for $\pi$ almost all starting points).
+\end{assumption}
+
 \begin{theorem}
 Assume assumption 2 holds. Then $\forall N \geq 1$
 \begin{enumerate}
   \item the PMMH update is an MH update defined on the extended space $\Theta \times X$ with a target density $\tilde{\pi}$
   %
-  \item additionally, if assumptions 5 and 6 are met, the PMMH sampler generates a sequence $\{ \theta(i), X_{1:P}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ \theta(i), X_{1:P}(i) \in \cdot \} \}$ satisfy 
+  \item additionally, if assumptions 5 and 6 are met, the PMMH sampler generates a sequence $\{ \theta(i), X_{1:T}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ \theta(i), X_{1:T}(i) \in \cdot \} \}$ satisfy 
     \begin{equation*}
-    \| \mathcal{L}^N \{ \theta(i), X_{1:P}(i) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf
+    \| \mathcal{L}^N \{ \theta(i), X_{1:T}(i) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf
     \end{equation*}
 \end{enumerate}
 \end{theorem}
@@ -327,15 +371,20 @@ Then the particle Gibbs sampler uses this like so:
 \end{enumerate}
 
 
-This theorem shows invariance of $p_\theta(x_{1:T}|y_{1:T})$ holds after a Particle Gibbs update and is erogodic.
+This theorem shows invariance of $p_\theta(x_{1:T}|y_{1:T})$ holds after a Particle Gibbs update and is erogodic, and Assumption \ref{asm:pap7} is the Gibbs equivalent of Assumption \ref{asm:pap5}.
+
+\begin{assumption}\label{asm:pap7}
+The Gibbs sampler defined by conditionals $\pi(\theta|x_{1:T})$ and $p_\theta(x_{1:T})$ is irreducible and aperiodic (and hence converges for $\pi$ almost all starting points).
+\end{assumption}
+
 \begin{theorem}
-Assume assumption 2. Then
+Assume Assumption \ref{asm:pap2}. Then
 \begin{enumerate}
   \item the PG updates defines a transition kernel on the extended space $\Theta \times {\bf X}$ of invariant density $\tilde{\pi}^N \quad \forall N \geq 1$
   %
-  \item if assumption 5-7 hold, the PG sampler generates a sequence $\{ \theta(i), X_{1:P}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ (\theta(i), X_{1:P}(i)) \in \cdot \} \}$ satisfy 
+  \item if Assumption \ref{asm:pap5}-\ref{asm:pap7} hold, the PG sampler generates a sequence $\{ \theta(i), X_{1:T}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ (\theta(i), X_{1:T}(i)) \in \cdot \} \}$ satisfy 
     \begin{equation*}
-    \| \mathcal{L}^N \{ (\theta(i), X_{1:P}(i)) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf \quad \exists \quad N \geq 2
+    \| \mathcal{L}^N \{ (\theta(i), X_{1:T}(i)) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf \quad \exists \quad N \geq 2
     \end{equation*}
 \end{enumerate}
 \end{theorem}
