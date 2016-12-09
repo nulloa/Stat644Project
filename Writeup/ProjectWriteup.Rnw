@@ -79,7 +79,7 @@ Usually, we never see $\{ X_n \}$, but we will ``observe'' them through $\{ Y_n 
 Y_n | (X_1,\ldots,X_n = x,\ldots,X_m) \sim g_\theta(\cdot|x) \text{ for } 1 \leq n \leq m
 \end{align}
 
-Notation note: For random variables, capitol letters will be used: $X_n$ and lower case will be used for thier values. Lastly, we will denote a sequence, $\{ z_n \}$, as follows $z_{i:j} = (z_i, z_{i+1},\ldots,z_j)$.
+Notation note: For random variables, capitol letters will be used: $X_n$ and lower case will be used for their values. Lastly, we will denote a sequence, $\{ z_n \}$, as follows $z_{i:j} = (z_i, z_{i+1},\ldots,z_j)$.
 
 In Bayesian analysis, we want to conduct inference on two posteriors:
 \begin{enumerate}
@@ -94,21 +94,21 @@ In Bayesian analysis, we want to conduct inference on two posteriors:
   \end{align}
 \end{enumerate}
 
-Depending on the type of SSM, these posteriors may be difficult or failry simple to handle. In our case, we will consider the approximations that allow us to handle more complicated cases, and we will outline some background between SMC and MCMC for SSM that help in the development of the approximation.
+Depending on the type of SSM, these posteriors may be difficult or fairly simple to handle. In our case, we will consider the approximations that allow us to handle more complicated cases, and we will outline some background between SMC and MCMC for SSM that help in the development of the approximation.
 
 
 
 %-----------------------------
 \subsection{Sequential Monte Carlo}
 
-The most common method of handling SSM in a bayesian context involves Sequential Monte Carlo methods (SMC). The big idea of SMC is it provides a method to sequentially approximate $p_\theta(x_{1:n}|y_{1:n})$ for $n \geq 1$ and $p_\theta(y_{1:n})$ using $N$ weighted samples called \textit{particles} i.e. approximate $p_\theta(x_1 | y_1), p_\theta(y_1)$ first, then $p_\theta(x_{1:2} | y_{1:2}), p_\theta(y_{1:2})$ second, all the way to $p_\theta(x_{1:n} | y_{1:n}), p_\theta(y_{1:n})$. \\
+The most common method of handling SSM in a Bayesian context involves Sequential Monte Carlo methods (SMC). The big idea of SMC is it provides a method to sequentially approximate $p_\theta(x_{1:n}|y_{1:n})$ for $n \geq 1$ and $p_\theta(y_{1:n})$ using $N$ weighted samples called \textit{particles} i.e. approximate $p_\theta(x_1 | y_1), p_\theta(y_1)$ first, then $p_\theta(x_{1:2} | y_{1:2}), p_\theta(y_{1:2})$ second, all the way to $p_\theta(x_{1:n} | y_{1:n}), p_\theta(y_{1:n})$. \\
 
-The driving force behind SMC is to use importance sampling (IS) to approximate $p_\theta(x_1 | y_1)$ by $q_\theta(x_1 | y_1)$. For one iterations, we would start by generating $N$ particles, $\{ X^k_1 \}$, from $q_\theta(x_1 | y_1)$, next ascribe weights, $\{ W^k_1 \}$, to the particles which take into account the difference between the two densities. Since we are just interested in one iteration, we would sample $N$ times from IS approx of $p_\theta(x_1 | y_1)$, $\hat{p}_\theta(dx_1 | y_1)$ to get particles approx distributed from $p_\theta(x_1 | y_1)$. Usually, we are interested in many interations, so we would repeat the process as outlined below noting that
+The driving force behind SMC is to use importance sampling (IS) to approximate $p_\theta(x_1 | y_1)$ by $q_\theta(x_1 | y_1)$. For one iterations, we would start by generating $N$ particles, $\{ X^k_1 \}$, from $q_\theta(x_1 | y_1)$, next ascribe weights, $\{ W^k_1 \}$, to the particles which take into account the difference between the two densities. Since we are just interested in one iteration, we would sample $N$ times from IS approx of $p_\theta(x_1 | y_1)$, $\hat{p}_\theta(dx_1 | y_1)$ to get particles approx distributed from $p_\theta(x_1 | y_1)$. Usually, we are interested in many iterations, so we would repeat the process as outlined below noting that
 \begin{align*}
   p_\theta(x_{1:2} | y_{1:2}) \propto p_\theta(x_1|y_1) f_\theta(x_2|x_1) g_\theta(y_2|x_2)
 \end{align*}\\
 
-Here is the algrotihm:
+Here is the algorithm:
 \begin{enumerate}
   \item[] \textit{Step 1:} at time $n=1$,
   \begin{enumerate}
@@ -123,7 +123,7 @@ Here is the algrotihm:
 %
   \item[] \textit{Step 2:} at time $n=2,\ldots,T$,
   \begin{enumerate}
-    \item sapmle $A^k_{n-1} \sim \mathcal{F}(\cdot | {\bf W}_{n-1})$
+    \item sample $A^k_{n-1} \sim \mathcal{F}(\cdot | {\bf W}_{n-1})$
     \item sample $X^k_n \sim q_\theta(\cdot|y_n, X_{n-1}^{A^k_{n-1}})$ and set $X_{1:n}^k := (X_{1:n-1}^{A^k_{n-1}}, X^k_n)$
     \item compute and normalize the weights
     \begin{align}
@@ -174,18 +174,18 @@ This workaround is fine unless $K$ becomes too large. If it becomes to large, th
 %-----------------------------
 \section{Particle Markov chain Monte Carlo}
 
-The Particle MCMC algrotihm is the entire focus of this paper. This algorithm attempts to correct issues with both SMC and regular MCMC methods, by taking what these methods do best and combining them. Let's recall the ideal MCMC case; we have a target $p(\theta, x_{1:T}|y_{1:T})$ which we sample via $p_\theta(x_{1:T}|y_{1:T})$. Obviously this isn't feasible in practice, so what if we approximated this best case scenario by using the SMC approximation to $p_\theta(x_{1:T}|y_{1:T})$ as a proposal distribution in a Metropolis Hastings update? This sounds really good, but not really possible directly since the marginal density of a particle is not available and would be needed in the acceptance ratio. To tackle the issue, PMCMC includes the space of all the random variables generated by SMC in the target distributions considered. A nice feature of PMCMC is that is leaves the target density invariant; because of this it is considered an `exact approximation.' The paper also presents three implementations of PMCMC which will follow.
+The Particle MCMC algorithm is the entire focus of this paper. This algorithm attempts to correct issues with both SMC and regular MCMC methods, by taking what these methods do best and combining them. Let's recall the ideal MCMC case; we have a target $p(\theta, x_{1:T}|y_{1:T})$ which we sample via $p_\theta(x_{1:T}|y_{1:T})$. Obviously this isn't feasible in practice, so what if we approximated this best case scenario by using the SMC approximation to $p_\theta(x_{1:T}|y_{1:T})$ as a proposal distribution in a Metropolis Hastings update? This sounds really good, but not really possible directly since the marginal density of a particle is not available and would be needed in the acceptance ratio. To tackle the issue, PMCMC includes the space of all the random variables generated by SMC in the target distributions considered. A nice feature of PMCMC is that is leaves the target density invariant; because of this it is considered an `exact approximation.' The paper also presents three implementations of PMCMC which will follow.
 
 
 %-----------------------------
 \subsubsection{Particle independent Metropolis-Hastings sampler}
-With Particle independent Metropolis-Hastings sampler the goal is still to $p_\theta(x_{1:T}|y_{1:T})$ execpt for now we are going to include SMC approximations in our proposal. Normally we choose a proposal that will leave $p_\theta(x_{1:T}|y_{1:T})$ invariant. In order for this to happen we need our proposal to suggest candidates $X^*_{1:T}$ that are accpted with probability
+With Particle independent Metropolis-Hastings sampler the goal is still to $p_\theta(x_{1:T}|y_{1:T})$ except for now we are going to include SMC approximations in our proposal. Normally we choose a proposal that will leave $p_\theta(x_{1:T}|y_{1:T})$ invariant. In order for this to happen we need our proposal to suggest candidates $X^*_{1:T}$ that are accepted with probability
 \begin{equation*}
  min \Bigg( 1, \frac{p_\theta(X^*_{1:T}|y_{1:T})}{p_\theta(X_{1:T}|y_{1:T})} \frac{q_\theta(X_{1:T}|y_{1:T})}{q_\theta(X_{1:T}|y_{1:T})} \Bigg)
 \end{equation*}
 given current state $X_{1:T}$. (Also side note, the paper included some very unintuitive notation for the min operator.) \\
 
-In the best case scenario, $q_\theta(X_{1:T}|y_{1:T}) = p_\theta(X_{1:T}|y_{1:T})$, but if that were the case then there would be no need for a smapler. The idea is to simply use the SMC approximation of $p_\theta(X_{1:T}|y_{1:T})$, but it's not possible to use it directly since the marginal distribution of $X^*_{1:T}$ is necessary to get the acceptance probability. To get over this bump, they suggest taking the expectation of the approximation over all the random variables given by SMC algorithm and consider this as the proposal i.e. 
+In the best case scenario, $q_\theta(X_{1:T}|y_{1:T}) = p_\theta(X_{1:T}|y_{1:T})$, but if that were the case then there would be no need for a sampler. The idea is to simply use the SMC approximation of $p_\theta(X_{1:T}|y_{1:T})$, but it's not possible to use it directly since the marginal distribution of $X^*_{1:T}$ is necessary to get the acceptance probability. To get over this bump, they suggest taking the expectation of the approximation over all the random variables given by SMC algorithm and consider this as the proposal i.e. 
 \begin{equation*}
   q_\theta(dx_{1:T}|y_{1:T})  = E(\hat{p}_\theta(dx_{1:T}|y_{1:T}))
 \end{equation*}
@@ -210,7 +210,7 @@ This still doesn't give us a nice form to work with but this allows us to embed 
 \end{enumerate}
 
 
-These next few assumptions and thereoms establish the invariance of $p_\theta(x_{1:T}|y_{1:T})$ after the PIMH update and ergodicity of the PIMH sampler.
+These next few assumptions and theorems establish the invariance of $p_\theta(x_{1:T}|y_{1:T})$ after the PIMH update and ergodicity of the PIMH sampler.
 
 \begin{assumption}\label{asm:pap1}
 For $n=1,\ldots,T$, we have $\mathcal{S}_n \subseteq \mathcal{Q}_n$
@@ -308,7 +308,7 @@ The looking at the acceptance probability, it is natural to use SMC approximatio
 
 
 
-The following thereom shows the invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PMMH update and erogodicity of PMMH. Assumption \ref{asm:pap5} has the same idea as Assumption \ref{asm:pap1} in that it allows us to use a importance density in approximation. Assumption \ref{asm:pap6} is a key assumption that ensures we have a converging MH algorithm.
+The following theorem shows the invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PMMH update and erogodicity of PMMH. Assumption \ref{asm:pap5} has the same idea as Assumption \ref{asm:pap1} in that it allows us to use a importance density in approximation. Assumption \ref{asm:pap6} is a key assumption that ensures we have a converging MH algorithm.
 
 \begin{assumption}\label{asm:pap5}
 For any $\theta \in \mathcal{S}$, we have $\mathcal{S}^\theta_n \subseteq \mathcal{Q}^\theta_n$ for $n=1,\ldots,T$.
@@ -390,12 +390,18 @@ Assume Assumption \ref{asm:pap2}. Then
 \end{theorem}
 
 
-
+Also for both PMMH and PG samplers, the author presents a theorem which ensures consistent estimators.
+\begin{theorem}
+Assume Assumptions \ref{asm:pap2} - \ref{asm:pap5} and let $f:\Theta \times \mathcal{X}^T \rightarrow \Re$ be such that $E_\pi(|f|) < \infty$. Then when the PMMH or PG sampler is erogodic, the for any $N \geq 1$ or $N \geq 2$ respectively:
+\begin{equation*}
+  \frac{1}{L} \sum \limits_{i=1}^L \Big[ \sum \limits_{k=1}^N W^k_T(i) f\{ \theta(i), X^k_{1:T}(i) \} \Big] \rightarrow E_\pi(f) \text{ a.s. as }L\rightarrow \infty
+\end{equation*}
+\end{theorem}
 
 
 %-----------------------------
 \section{Conclusion}
- In this review, we have outlined and given some intuition behind PMCMC. We have limited the review to the simple case using SSMs as the motivation. PMCMC methods have been generalized to handle models much more complicated the SSMs. While these methods are better than using SMC or MCMC alone, there are some issues as well. At every iteration in the PMCMC, $N$ particles need to be generated. This will lead to more computation and time in the algorithm. Overall, I feel like this a minor concern given the benefits of the PMCMC. We also gave thereoms which helped back the properties of PMCMC in its various settings.
+ In this review, we have outlined and given some intuition behind PMCMC. We have limited the review to the simple case using SSMs as the motivation. PMCMC methods have been generalized to handle models much more complicated the SSMs. While these methods are better than using SMC or MCMC alone, there are some issues as well. At every iteration in the PMCMC, $N$ particles need to be generated. This will lead to more computation and time in the algorithm. Overall, I feel like this a minor concern given the benefits of the PMCMC. We also gave theorems which helped back the properties of PMCMC in its various settings and showed the consistency of their estimators. This is only a breif introduction to PMCMC, but hopefully it helped develop some intuition behind the method.
 
 
 
