@@ -1,24 +1,11 @@
-
-%----------------------------------------------------------------------------------------
-%	PACKAGES AND THEMES
-%----------------------------------------------------------------------------------------
-
-\documentclass{beamer}
-
-\mode<presentation> {
-
-\usetheme{AnnArbor}
-
+\documentclass[pdf]{beamer}
+\usetheme{Copenhagen}
+%\usetheme{AnnArbor}
 \usecolortheme{beaver}
-}
+
 
 \usepackage{graphicx, copyrightbox, bm, amsmath,verbatim}
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
-\usepackage[utf8]{inputenc}
-\usepackage[english]{babel}
-\usepackage{amsthm}
-
-\newtheorem{theorem}{Theorem}
 
 
 \makeatletter
@@ -131,7 +118,7 @@ In Bayesian analysis, we want to conduct inference on two posteriors:
 \begin{enumerate}
   \item Generate $N$ particles, $\{ X^k_1 \}$, from proposal $q_\theta(x_1 | y_1)$
   \item Calculate weights, $\{ W^k_1 \}$, for each particle
-  \item for $n \geq 2$, use weights in sampling $X^k_n$ from q_\theta(\cdot|y_n, W^k_1)$
+  \item for $n \geq 2$, use weights in sampling $X^k_n$ from $q_\theta(\cdot|y_n, W^k_1)$
 \end{enumerate}
 
 At time $T$, the approximation is:
@@ -140,6 +127,95 @@ At time $T$, the approximation is:
 \end{align}
 where $\delta$ is the Dirac measure
 \end{frame}
+
+
+
+
+
+
+%------------------------------------------------
+\section{PMMH}
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+
+\begin{block}{Assumption 1}\label{ams:pap2}
+For $n=1,\ldots,T$, we have $\mathcal{S}_n \subseteq \mathcal{Q}_n$
+where
+\begin{align*}
+\mathcal{S}_n & = \{ x_{1:T} \in \mathcal(X)^n: p(x_{1:T}) > 0 \} \quad n \geq 1 \\
+\mathcal{Q}_n & = \{ x_{1:T} \in \mathcal(X)^n:  p(x_{1:T-1}) q(x_n|x_{1:T-1}) > 0\} \quad n \geq 1
+\end{align*}
+\end{block}
+
+\begin{block}{Assumption 2}\label{asm:pap2}
+For any $k=1,\ldots,N$ and $n=1,\ldots,T$, the resampling scheme satisfies 
+\begin{equation}
+E(O^k_n|{\bf W}_n) = NW^K_n
+\end{equation}
+and
+\begin{equation}
+r(A^K_n = m | {\bf W}_n) = W^m_n
+\end{equation}
+\end{block}
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+
+\begin{block}{Assumption 3}\label{asm:pap3}
+$\exists\text{ a}$ sequence of constants $\{ C_n; n = 1,\ldots,\bar{T} \}$ for some integer $\bar{T}$ s.t. for any $x_{1:n} \in \mathcal{S}_n$
+\begin{equation}
+w_n(x_{1:n}) \leq C_n
+\end{equation}
+\end{block}
+
+\begin{block}{Assumption 5}\label{asm:pap5}
+For any $\theta \in \mathcal{S}$, we have $\mathcal{S}^\theta_n \subseteq \mathcal{Q}^\theta_n$ for $n=1,\ldots,T$.
+\end{block}
+
+\begin{block}{Assumption 6}\label{asm:pap6}
+The MH sampler of target density $\pi(\theta)$ and proposal density $q(\theta^*|\theta)$ is irreducible and aperiodic (and hence converges for $\pi$ almost all starting points).
+\end{block}
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+
+\begin{alertblock}{Theorem}
+Assume assumption 2 holds. Then $\forall N \geq 1$
+\begin{enumerate}
+  \item the PMMH update is an MH update defined on the extended space $\Theta \times X$ with a target density $\tilde{\pi}$
+  %
+  \item additionally, if assumptions 5 and 6 are met, the PMMH sampler generates a sequence $\{ \theta(i), X_{1:T}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ \theta(i), X_{1:T}(i) \in \cdot \} \}$ satisfy 
+    \begin{equation*}
+    \| \mathcal{L}^N \{ \theta(i), X_{1:T}(i) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf
+    \end{equation*}
+\end{enumerate}
+\end{alertblock}
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+
+Also for both PMMH and PG samplers, the author presents a theorem which ensures consistent estimators.
+\begin{alertblock}{Theorem}
+Assume Assumptions \ref{asm:pap2} - \ref{asm:pap5} and let $f:\Theta \times \mathcal{X}^T \rightarrow \Re$ be such that $E_\pi(|f|) < \infty$. Then when the PMMH or PG sampler is erogodic, the for any $N \geq 1$ or $N \geq 2$ respectively:
+\begin{equation*}
+  \frac{1}{L} \sum \limits_{i=1}^L \Big[ \sum \limits_{k=1}^N W^k_T(i) f\{ \theta(i), X^k_{1:T}(i) \} \Big] \rightarrow E_\pi(f) \text{ a.s. as }L\rightarrow \infty
+\end{equation*}
+\end{alertblock}
+
+\end{frame}
+
 
 
 %------------------------------------------------
