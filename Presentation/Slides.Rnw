@@ -65,8 +65,7 @@ Andrieu, C., Doucet, A. and Holenstein, R. (2010), Particle Markov chain Monte C
 
 
 \begin{frame}[fragile]
-\theoremstyle{definition}
-\begin{definition}
+
 State space models (also called hidden Markov models), $\{ X_n ; n \geq 1 \}$, are be defined by:
 \begin{itemize}
   \item Initial density $X_1 \sim \mu_\theta(\cdot)$
@@ -75,7 +74,12 @@ State space models (also called hidden Markov models), $\{ X_n ; n \geq 1 \}$, a
   X_{n+1}|(X_n = x) \sim f_\theta(\cdot|x) \quad \exists \> \theta \in \Theta
   \end{align}
 \end{itemize}
-\end{definition}
+
+Usually, we don't observe $\{ X_n ; n \geq 1 \}$ directly but rather observe them through $\{ Y_n ; n \geq 1 \}$ which has marginal density:
+
+\begin{equation*}
+  Y_n|(X_1,\ldots, X_n=x,\ldots,X_m) \sim g_\theta(\cdot|x)
+\end{equation*}
 \end{frame}
 
 %------------------------------------------------
@@ -279,6 +283,19 @@ w_n(x_{1:n}) \leq C_n
 \end{equation}
 \end{block}
 
+\begin{block}{Assumption 4}\label{asm:pap4}
+There are $\mu(\cdot)$ a probability density on $\mathcal{X}$ and $0 < \underline{w}, \bar{w}, \underline{\epsilon}, \bar{\epsilon} < \infty$ s.t. for any $n=1,\ldots,\bar{T}$ and for any $x_{1:n} \in \mathcal{S}_n$,
+\begin{equation*}
+  \underline{w} \leq x_n(x_{1:n}) \leq \bar{w} \text{ and } \underline{\epsilon} \mu(x_n) \leq M_n(x_n|x_{1:n-1}) \leq \bar{\epsilon} \mu(x_n)
+\end{equation*}
+\end{block}
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+
 \begin{block}{Assumption 5}\label{asm:pap5}
 For any $\theta \in \mathcal{S}$, we have $\mathcal{S}^\theta_n \subseteq \mathcal{Q}^\theta_n$ for $n=1,\ldots,T$.
 \end{block}
@@ -298,9 +315,9 @@ Assume assumption 2 holds. Then $\forall N \geq 1$
 \begin{enumerate}
   \item the PMMH update is an MH update defined on the extended space $\Theta \times X$ with a target density $\tilde{\pi}$
   %
-  \item additionally, if assumptions 5 and 6 are met, the PMMH sampler generates a sequence $\{ \theta(i), X_{1:T}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ \theta(i), X_{1:T}(i) \in \cdot \} \}$ satisfy 
+  \item additionally, if Assumptions 5 and 6 are met, the PMMH sampler generates a sequence $\{ \theta(i), X_{1:T}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ \theta(i), X_{1:T}(i) \in \cdot \} \}$ satisfy 
     \begin{equation*}
-    \| \mathcal{L}^N \{ \theta(i), X_{1:T}(i) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf
+    \| \mathcal{L}^N \{ \theta(i), X_{1:T}(i) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \infty
     \end{equation*}
 \end{enumerate}
 \end{alertblock}
@@ -313,7 +330,7 @@ Assume assumption 2 holds. Then $\forall N \geq 1$
 
 Also for both PMMH and PG samplers, the author presents a theorem which ensures consistent estimators.
 \begin{alertblock}{Theorem}
-Assume Assumptions \ref{asm:pap2} - \ref{asm:pap5} and let $f:\Theta \times \mathcal{X}^T \rightarrow \Re$ be such that $E_\pi(|f|) < \infty$. Then when the PMMH or PG sampler is erogodic, the for any $N \geq 1$ or $N \geq 2$ respectively:
+Assume Assumptions 2 - 5 and let $f:\Theta \times \mathcal{X}^T \rightarrow \Re$ be such that $E_\pi(|f|) < \infty$. Then when the PMMH or PG sampler is erogodic, the for any $N \geq 1$ or $N \geq 2$ respectively:
 \begin{equation*}
   \frac{1}{L} \sum \limits_{i=1}^L \Big[ \sum \limits_{k=1}^N W^k_T(i) f\{ \theta(i), X^k_{1:T}(i) \} \Big] \rightarrow E_\pi(f) \text{ a.s. as }L\rightarrow \infty
 \end{equation*}
