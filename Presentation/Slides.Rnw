@@ -37,6 +37,14 @@ Iowa State University \\ % Your institution for the title page
 \titlepage % Print the title page as the first slide
 \end{frame}
 
+% Title of paper presented
+\begin{frame}
+Andrieu, C., Doucet, A. and Holenstein, R. (2010), Particle Markov chain Monte Carlo methods. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 72: 269–342. doi:10.1111/j.1467-9868.2009.00736.x
+\end{frame}
+
+
+
+
 \begin{frame}
 \frametitle{Overview} % Table of contents slide, comment this block out to remove it
 \tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
@@ -49,6 +57,7 @@ Iowa State University \\ % Your institution for the title page
 %------------------------------------------------
 \section{Introduction}
 %------------------------------------------------
+
 
 %------------------------------------------------
 \subsection{State Space Models}
@@ -72,13 +81,26 @@ State space models (also called hidden Markov models), $\{ X_n ; n \geq 1 \}$, a
 %------------------------------------------------
 
 \begin{frame}[fragile]
-Talk about Dynamic Linear Models here.
+A simple example of SSMs are Dynamic Linear Models.
+
+Normal prior at time $t=0$
+\begin{align*}
+\theta_0 \sim N_p(m_0, C_0)
+\end{align*}
+
+and when time $t \geq 1$
+\begin{align*}
+ Y_t  &= F_t \theta_t + v_t             &   v_t  &\sim N_m(0, V_t) \\
+ \theta_t  &= G_t \theta_{t-1} + w_t    &   w_t  &\sim N_p(0, W_t)
+\end{align*}
+where $F_t, G_t, V_t, W_t$ are known matrices
+
 \end{frame}
 
 %------------------------------------------------
 
 \begin{frame}[fragile]
-In Bayesian analysis, we want to conduct inference on two posteriors:
+In Bayesian analysis for SSMs, we want to conduct inference on two posteriors:
 \begin{enumerate}
   \item $p_\theta(x_{1:T}|y_{1:T}) \propto p_\theta(x_{1:T}, y_{1:T})$ assuming $\theta$ is known and where 
   \begin{align}
@@ -102,7 +124,7 @@ In Bayesian analysis, we want to conduct inference on two posteriors:
 
 \begin{frame}[fragile]
 \begin{itemize}
-  \item First methods in a Monte Carlo sense it SMC
+  \item First methods in a Monte Carlo sense to handle SSMs
   \item Big idea: sequentially approximate $p_\theta(x_{1:n}|y_{1:n})$ for $n \geq 1$
   \begin{enumerate}
     \item $p_\theta(x_1 | y_1), p_\theta(y_1)$
@@ -116,18 +138,22 @@ In Bayesian analysis, we want to conduct inference on two posteriors:
 
 \begin{frame}[fragile]
 \begin{enumerate}
-  \item Generate $N$ particles, $\{ X^k_1 \}$, from proposal $q_\theta(x_1 | y_1)$
+  \item Generate $k=1,\dots,N$ particles, $\{ X^k_1 \}$, from proposal $q_\theta(x_1 | y_1)$
   \item Calculate weights, $\{ W^k_1 \}$, for each particle
   \item for $n \geq 2$, use weights in sampling $X^k_n$ from $q_\theta(\cdot|y_n, W^k_1)$
 \end{enumerate}
 
-At time $T$, the approximation is:
+At time $T=1,\dots,n$, the approximation is:
 \begin{align}
   \hat{p}_\theta(dx_{1:n} | y_{1:n}) := \sum \limits_{k=1}^N W^K_n \delta_{X^k_{1:n}}(dx_{1:n})
 \end{align}
 where $\delta$ is the Dirac measure
 \end{frame}
 
+%------------------------------------------------
+\begin{frame}
+\includegraphics[width=\textwidth]{SSM.png}
+\end{frame}
 %------------------------------------------------
 
 \begin{frame}[fragile]
@@ -150,11 +176,11 @@ Problem: $T$ is very large, the number of distinct $x_n$ goes down and difficult
 
 
 \begin{frame}[fragile]
-MCMC methods for state space models focus on sampling from $p(\theta, x_{1:T}|y_{1:T})$ by switching in between sampling from $x_{1:T}|\theta$ and $\theta|x_{1:T}$ \~\
+MCMC methods for state space models focus on sampling from $p(\theta, x_{1:T}|y_{1:T})$ by switching in between sampling from $x_{1:T}|\theta$ and $\theta|x_{1:T}$ \\~\\
 
-$\theta|x_{1:T}, y_{1:T}$ is easy to sample from but $x_{1:T}|y_{1:T}$ rarely is so there is a workaround that splits $x_{1:T}$ into $K$ adjacent blocks and update block by block. 
+$\theta|x_{1:T}, y_{1:T}$ is easy to sample from but $x_{1:T}|y_{1:T}$ rarely is so there is a workaround that splits $x_{1:T}$ into $K$ adjacent blocks and update block by block. \\~\\ 
 
-Wewould update $x_{n:n+K-1}$ like so:
+We would update $x_{n:n+K-1}$ like so:
 \begin{align}
   p_\theta(x_{n:n+K-1}|y_{1:T},x_{1:n-1},x_{n+K:T}) \propto \prod \limits_{k=n}^{n+K} f_\theta(x_k|x_{k-1}) \prod \limits_{k=n}^{n+K-1} g_\theta(y_k|x_k) \label{eq:mcmcapprox}
 \end{align}
@@ -167,19 +193,54 @@ Problem: $K$ becomes too large, then we will have trouble creating good approxim
 
 
 %------------------------------------------------
-\section{PMMH}
+\section{PMCMC}
 %------------------------------------------------
 
 \begin{frame}[fragile]
 Let's recall the goal here:
 \begin{itemize}
   \item Target $p(\theta, x_{1:T}|y_{1:T})$ 
-  \item Best case scenario: sample it via $p_\theta(x_{1:T}|y_{1:T})$
+  \item Best case scenario: sample it via $p(\theta|y_{1:T}) p_\theta(x_{1:T}|y_{1:T})$
   \item Approximate by using the SMC approximation to $p_\theta(x_{1:T}|y_{1:T})$ as a proposal distribution in a Metropolis Hastings update
   \item Not directly feasible
   \item Workaround: include the space of all the random variables generated by SMC in the target distributions considered
 \end{itemize}
 \end{frame}
+
+%------------------------------------------------
+
+\begin{frame}[fragile]
+\begin{itemize}
+  \item Particle independent Metropolis-Hastings: $p(x_{1:T} | y_{1:T})$
+  \item Particle marginal Metropolis-Hastings: $p(\theta, x_{1:T} | y_{1:T})$
+  \item Particle Gibbs: $p(\theta, x_{1:T} | y_{1:T})$
+\end{itemize}
+\end{frame}
+
+
+
+%------------------------------------------------
+\subsection{Particle marginal Metropolis-Hastings}
+%------------------------------------------------
+
+
+\begin{frame}[fragile]
+\begin{itemize}
+\item Interested in $p(\theta, x_{1:T} | y_{1:T})$
+\item $p(\theta, x_{1:T} | y_{1:T}) = p(\theta | y_{1:T}) p_\theta(x_{1:T} | y_{1:T})$ 
+\item The intuitive proposal is
+\begin{equation*}
+  q \{ (\theta^*, x^*_{1:T}) | (\theta, x_{1:T}) \} = q(\theta^* | \theta) p_{\theta^*}(x^*_{1:T} | y_{1:T})
+\end{equation*}
+\item Acceptance ratio:
+\begin{equation}
+ \frac{p(\theta^*, x^*_{1:T}|y_{1:T})}{p(\theta, x_{1:T}|y_{1:T})}\frac{q \{ (\theta, x_{1:T}) | (\theta^*, x^*_{1:T}) \}}{q \{ (\theta^*, x^*_{1:T}) | (\theta, x_{1:T}) \}} = \frac{p_{\theta^*}(y_{1:T})p(\theta^*)}{p_\theta(y_{1:T})p(\theta)}\frac{q(\theta|\theta^*)}{q(\theta^*|\theta)}
+\end{equation}
+\end{itemize}
+
+The looking at the acceptance probability, it is natural to use SMC approximation for $p_\theta(x_{1:T}|y_{1:T})$ and $p_\theta(y_{1:T})$ in the PMMH update.
+\end{frame}
+
 
 %------------------------------------------------
 
@@ -268,14 +329,10 @@ Assume Assumptions \ref{asm:pap2} - \ref{asm:pap5} and let $f:\Theta \times \mat
 
 \begin{frame}
 \begin{itemize}
-  \item ALC seems decent for prediction, but NN seems better
-  \item It is not clear how much better it is to use ALC vs NN \\~\\
-  \item These two examples of GPU usage have contradicting ideas
-  \begin{itemize}
-    \item One method says that points nearest are most important
-    \item One method says that you need to include some points outside of the nearest points
-  \end{itemize}
-  \item Although it is important to note they set out for different purposes: estimation and prediction
+  \item Issue: every iteration in the PMCMC, $N$ particles need to be generated
+  \item So basically more computation but better results
+  \item PMCMC for SSMs
+  \item Been generalized to handle models much more complicated the SSM
 \end{itemize}
 \end{frame}
 
