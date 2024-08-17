@@ -1,0 +1,472 @@
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\usepackage[letterpaper,bindingoffset=0.2in,left=1in,right=1in,top=.8in,bottom=.8in,footskip=.25in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsthm}
+
+\newtheorem{assumption}{Assumption}
+\newtheorem{theorem}{Theorem}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+\lhead{Nehemias Ulloa}
+\chead{Stat 644}
+\rhead{Project}
+\lfoot{}
+\cfoot{\thepage}
+\rfoot{}
+
+% Length to control the \fancyheadoffset and the calculation of \headline
+% simultaneously
+\newlength\FHoffset
+\setlength\FHoffset{1cm}
+
+\addtolength\headwidth{2\FHoffset}
+
+\fancyheadoffset{\FHoffset}
+
+% these lengths will control the headrule trimming to the left and right
+\newlength\FHleft
+\newlength\FHright
+
+% here the trimmings are controlled by the user
+\setlength\FHleft{0cm}
+\setlength\FHright{0cm}
+
+\doublespacing
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+%-----------------------------
+\section{Introduction}
+Monte Carlo methods have quickly become one of the most common methods of conducting statistical analysis. This was brought on partly due to the ease of access to powerful computing which previously made these methods unreachable from the layman. However, now that everyone is able to do basic MCMC, the problems researchers bring have become increasingly more difficult to analyze. In this review, we will be looking at the paper, \textit{Particle Markov Chain Monte Carlo Methods}, by Andrieu et al.(2010)\ref{andreiu10} which provides a way to combat the complexity in incoming problems. This paper gives an introduction to Particle Markov Chain Monte Carlo (PMCMC) and gives some intuition behind the algorithm. For this review of the paper, I will focus on introducing the PMCMC; developing the algorithm and intuition behind PMCMC; and provide asymptotic results of the PMCMC algorithm. \\
+
+The paper focuses on a new method called Particle Markov chain Monte Carlo or PMCMC for short. The basic idea behind PMCMC is to combine the best aspects of MCMC methods and Sequential Monte Carlo (SMC) methods. The goal of the algorithm is to use SMC to create proposal densities for the MCMC algorithms. The motivation for PMCMC comes from state space models (SSM), but the ideas and algorithm can be expanded to other high dimensional problems. \\
+
+In general, the goal of a MCMC algorithm is to sample from the target distribution, say $\pi$. Usually, we cannot sample from $\pi$ directly so we choose a proposal distribution which captures the essence of the target distribution and sample from the that. The hardest part of this is the balance between choosing a proposal distribution that adequately describes/captures the target distribution and choosing a proposal distribution that is easy to implement. PMCMC aims to provide a proposal distribution that balances these two features. \\
+
+
+%-----------------------------
+\section{Background}
+
+
+%-----------------------------
+\subsection{State Space Models}
+
+Before we talk about the PMCMC algorithm, we first need to talk about SMC, but before we talk about SMC, we should introduce the motivating example of SMC which are state space models (SSMs). 
+
+\theoremstyle{definition}
+\begin{definition}
+State space models (also called hidden Markov models), $\{ X_n ; n \geq 1 \}$, are be defined by:
+\begin{itemize}
+  \item Initial density $X_1 \sim \mu_\theta(\cdot)$
+  \item Transitional probability density 
+  \begin{align}
+  X_{n+1}|(X_n = x) \sim f_\theta(\cdot|x) \quad \exists \> \theta \in \Theta
+  \end{align}
+\end{itemize}
+\end{definition}
+
+Usually, we never see $\{ X_n \}$, but we will ``observe'' them through $\{ Y_n ; n \geq 1 \}$. These $\{ Y_n \}$ are conditionally independent given $\{ X_n \}$. We denote their marginal probability density function by 
+\begin{align}
+Y_n | (X_1,\ldots,X_n = x,\ldots,X_m) \sim g_\theta(\cdot|x) \text{ for } 1 \leq n \leq m
+\end{align}
+
+Notation note: For random variables, capitol letters will be used: $X_n$ and lower case will be used for their values. Lastly, we will denote a sequence, $\{ z_n \}$, as follows $z_{i:j} = (z_i, z_{i+1},\ldots,z_j)$.
+
+In Bayesian analysis, we want to conduct inference on two posteriors:
+\begin{enumerate}
+  \item $p_\theta(x_{1:T}|y_{1:T}) \propto p_\theta(x_{1:T}, y_{1:T})$ assuming $\theta$ is known and where 
+  \begin{align}
+    p_\theta(x_{1:T}, y_{1:T}) = \mu_\theta(x_1) \prod \limits_{i=2}^T f_\theta(x_n | x_{n-1}) \prod \limits_{n=1}^T g_\theta (y_n | x_n)
+  \end{align}
+  %
+  \item When $\theta$ is unknown,
+  \begin{align}
+    p(\theta, x_{1:T} | y_{1:T}) \propto p_\theta(x_{1:T}, y_{1:T}) p(\theta)
+  \end{align}
+\end{enumerate}
+
+Depending on the type of SSM, these posteriors may be difficult or fairly simple to handle. In our case, we will consider the approximations that allow us to handle more complicated cases, and we will outline some background between SMC and MCMC for SSM that help in the development of the approximation.
+
+
+
+%-----------------------------
+\subsection{Sequential Monte Carlo}
+
+The most common method of handling SSM in a Bayesian context involves Sequential Monte Carlo methods (SMC). The big idea of SMC is it provides a method to sequentially approximate $p_\theta(x_{1:n}|y_{1:n})$ for $n \geq 1$ and $p_\theta(y_{1:n})$ using $N$ weighted samples called \textit{particles} i.e. approximate $p_\theta(x_1 | y_1), p_\theta(y_1)$ first, then $p_\theta(x_{1:2} | y_{1:2}), p_\theta(y_{1:2})$ second, all the way to $p_\theta(x_{1:n} | y_{1:n}), p_\theta(y_{1:n})$. \\
+
+The driving force behind SMC is to use importance sampling (IS) to approximate $p_\theta(x_1 | y_1)$ by $q_\theta(x_1 | y_1)$. For one iterations, we would start by generating $N$ particles, $\{ X^k_1 \}$, from $q_\theta(x_1 | y_1)$, next ascribe weights, $\{ W^k_1 \}$, to the particles which take into account the difference between the two densities. Since we are just interested in one iteration, we would sample $N$ times from IS approx of $p_\theta(x_1 | y_1)$, $\hat{p}_\theta(dx_1 | y_1)$ to get particles approx distributed from $p_\theta(x_1 | y_1)$. Usually, we are interested in many iterations, so we would repeat the process as outlined below noting that
+\begin{align*}
+  p_\theta(x_{1:2} | y_{1:2}) \propto p_\theta(x_1|y_1) f_\theta(x_2|x_1) g_\theta(y_2|x_2)
+\end{align*}\\
+
+Here is the algorithm:
+\begin{enumerate}
+  \item[] \textit{Step 1:} at time $n=1$,
+  \begin{enumerate}
+    \item sample $X^k_1 \sim q_\theta(\cdot|y_1)$
+    \item compute \& normalize weights
+    \begin{align}
+      w_1(X^k_1) :=& \frac{p_\theta(X^k_1, y_1)}{q_\theta(X^k_1 | y_1)} = \frac{\mu_\theta(X^k_1) g_\theta(y_1|X^k_1)}{q_\theta(X^k_1 | y_1)} \nonumber \\
+      & W_1^k := \frac{w_1(X_1^k)}{\sum \limits_{m=1}^N w_1(X^m_1)}
+    \end{align}
+  \end{enumerate}
+%
+%
+  \item[] \textit{Step 2:} at time $n=2,\ldots,T$,
+  \begin{enumerate}
+    \item sample $A^k_{n-1} \sim \mathcal{F}(\cdot | {\bf W}_{n-1})$
+    \item sample $X^k_n \sim q_\theta(\cdot|y_n, X_{n-1}^{A^k_{n-1}})$ and set $X_{1:n}^k := (X_{1:n-1}^{A^k_{n-1}}, X^k_n)$
+    \item compute and normalize the weights
+    \begin{align}
+      w_1(X^k_{1:n}) &:= \frac{p_\theta(X^k_{1:n}, y_{1:n})}{p_\theta(X_{n-1}^{A^k_{n-1}}, y_{1:n-1}) q_\theta(X^k_n|y_n, X_{n-1}^{A^k_{n-1}})} \nonumber \\
+                  &= \frac{f_\theta(X^k_n | X_{n-1}^{A^k_{n-1}}) g_\theta(y_n | X^k_n)}{q_\theta(X^k_n | y_n, X_{n-1}^{A^k_{n-1}})} \nonumber \\
+      & W_n^k := \frac{w_n(X_{1:n}^k)}{\sum \limits_{m=1}^N w_n(X^m_{1:n})}
+    \end{align}
+  \end{enumerate}
+\end{enumerate}
+
+There are a lot of different pieces in the algorithm; I'll limit my description to the big pieces. $A^k_{n-1}$ is the `parent' indicator at time $n-1$ for particle $X_{1:n}^k$ for $2 \leq n \leq T$. ${\bf W}_n := (W^1_n,\ldots,W_n^N)$ are the normalized important weights at time $n$, and $\mathcal{F}(\cdot | {\bf p})$ is a discrete probability distribution on $\{ 1,\ldots, m \}$ typically a multinomial resampling procedure. The $A^k_{n-1}$ variables are key because they allow us to keep track of `genealogy' of the particles which will be needed for developing a Gibbs sampler for PMCMC. 
+
+The algorithm gives this approximation at time $T$:
+\begin{align}
+  \hat{p}_\theta(dx_{1:n} | y_{1:n}) := \sum \limits_{k=1}^N W^K_n \delta_{X^k_{1:n}}(dx_{1:n})
+\end{align}
+where $\delta$ is the Dirac measure.
+
+The SMC also provides us with an approximation to the marginal density $p_\theta(y_{1:T})$:
+\begin{align}
+  \hat{p}_\theta(y_{1:T}) := \hat{p}_\theta(y_1) \prod \limits_{n=2}^T \hat{p}_\theta(y_n|y_{1:n-1})
+\end{align}
+where
+\begin{align*}
+  \hat{p}_\theta(y_n|y_{1:n-1}) = \frac{1}{N} \sum \limits_{k=1}^N w_n(X^k_{1:n})
+\end{align*}
+
+So through the use of SMC we are able to get a approx of the marginal and joint distributions, but there are some issues with SMC. The obvious question is what happens when $T$ is very large? We can imagine when $T$ is very large, the number of distinct $x_n$ goes down. So basically in order to keep up with an increasing $T$ we'd have to keep increasing $k$ but that isn't practically feasible. This is becomes apparent when SMC is used to fit $p(\theta, x_{1:T}|y_{1:T})$ according to Andrieu et al.(1999), Fearnhead (2002) and Storvik (2002).
+
+
+
+
+%-----------------------------
+\subsection{Markov chain Monte Carlo}
+
+MCMC methods for state space models focus on sampling from $p(\theta, x_{1:T}|y_{1:T})$ by switching in between sampling from $x_{1:T}|\theta$ and $\theta|x_{1:T}$. Typically, $\theta|x_{1:T}$ is easy to sample from but $x_{1:T}|y_{1:T}$ rarely is so there is a workaround that splits $x_{1:T}$ into $K$ adjacent blocks and update block by block. \\
+
+{\bf Ex} Update $x_{n:n+K-1}$ like so:
+\begin{align}
+  p_\theta(x_{n:n+K-1}|y_{1:T},x_{1:n-1},x_{n+K:T}) \propto \prod \limits_{k=n}^{n+K} f_\theta(x_k|x_{k-1}) \prod \limits_{k=n}^{n+K-1} g_\theta(y_k|x_k) \label{eq:mcmcapprox}
+\end{align}
+
+This workaround is fine unless $K$ becomes too large. If it becomes to large, then we will have trouble creating good approximations of Eq \ref{eq:mcmcapprox}; so this will force us to keep $K$ small and cause us to spend more computational time to explore the support of $x_{1:T}|\theta$. So the only way to move forward is to simulate from joint proposal, but this is less than ideal since as $T$ increases, the proposal's performance doesn't get better since it doesn't use the information.
+
+
+
+
+%-----------------------------
+\section{Particle Markov chain Monte Carlo}
+
+The Particle MCMC algorithm is the entire focus of this paper. This algorithm attempts to correct issues with both SMC and regular MCMC methods, by taking what these methods do best and combining them. Let's recall the ideal MCMC case; we have a target $p(\theta, x_{1:T}|y_{1:T})$ which we sample via $p_\theta(x_{1:T}|y_{1:T})$. Obviously this isn't feasible in practice, so what if we approximated this best case scenario by using the SMC approximation to $p_\theta(x_{1:T}|y_{1:T})$ as a proposal distribution in a Metropolis Hastings update? This sounds really good, but not really possible directly since the marginal density of a particle is not available and would be needed in the acceptance ratio. To tackle the issue, PMCMC includes the space of all the random variables generated by SMC in the target distributions considered. A nice feature of PMCMC is that is leaves the target density invariant; because of this it is considered an `exact approximation.' The paper also presents three implementations of PMCMC which will follow.
+
+
+%-----------------------------
+\subsubsection{Particle independent Metropolis-Hastings sampler}
+With Particle independent Metropolis-Hastings sampler the goal is still to $p_\theta(x_{1:T}|y_{1:T})$ except for now we are going to include SMC approximations in our proposal. Normally we choose a proposal that will leave $p_\theta(x_{1:T}|y_{1:T})$ invariant. In order for this to happen we need our proposal to suggest candidates $X^*_{1:T}$ that are accepted with probability
+\begin{equation*}
+ min \Bigg( 1, \frac{p_\theta(X^*_{1:T}|y_{1:T})}{p_\theta(X_{1:T}|y_{1:T})} \frac{q_\theta(X_{1:T}|y_{1:T})}{q_\theta(X_{1:T}|y_{1:T})} \Bigg)
+\end{equation*}
+given current state $X_{1:T}$. (Also side note, the paper included some very unintuitive notation for the min operator.) \\
+
+In the best case scenario, $q_\theta(X_{1:T}|y_{1:T}) = p_\theta(X_{1:T}|y_{1:T})$, but if that were the case then there would be no need for a sampler. The idea is to simply use the SMC approximation of $p_\theta(X_{1:T}|y_{1:T})$, but it's not possible to use it directly since the marginal distribution of $X^*_{1:T}$ is necessary to get the acceptance probability. To get over this bump, they suggest taking the expectation of the approximation over all the random variables given by SMC algorithm and consider this as the proposal i.e. 
+\begin{equation*}
+  q_\theta(dx_{1:T}|y_{1:T})  = E(\hat{p}_\theta(dx_{1:T}|y_{1:T}))
+\end{equation*}
+
+This still doesn't give us a nice form to work with but this allows us to embed our sampling of $p_\theta(X_{1:T}|y_{1:T})$ into a sampling from another well-chosen distribution that covers fits our idea of having a space with all the random variables. 
+
+\begin{enumerate}
+  \item[] \textit{Step 1}: i=0 \& run SMC algorithm for $p_\theta(x_{1:T}|y_{1:T})$.\\
+  Sample $X_{1:T}(0) \sim \hat{p}_\theta(\cdot|y_{1:T})$ and $\hat{p}_\theta(y_{1:T})(0)$
+%
+%
+  \item[] \textit{Step 2}: $i \geq 1$
+  \begin{enumerate}
+    \item run SMC algorithm for $p_\theta(x_{1:T}|y_{1:T})$ \& sample $X^*_{1:T} \sim \hat{p}_\theta(\cdot|y_{1:T})$ and $\hat{p}_\theta(y_{1:T})$
+    %
+    \item With probability,
+    \begin{equation*}
+       min \Bigg( 1, \frac{\hat{p}_\theta(y_{1:T})^*}{\hat{p}_\theta(y_{1:T})(i-1)} \Bigg)
+    \end{equation*}
+    set $X_{1:T}(i) = X^*_{1:T}$ and $\hat{p}_\theta(y_{1:T})(i) = \hat{p}_\theta(y_{1:T})^*$ otherwise stay the same.
+  \end{enumerate}
+\end{enumerate}
+
+
+These next few assumptions and theorems establish the invariance of $p_\theta(x_{1:T}|y_{1:T})$ after the PIMH update and ergodicity of the PIMH sampler.
+
+\begin{assumption}\label{asm:pap1}
+For $n=1,\ldots,T$, we have $\mathcal{S}_n \subseteq \mathcal{Q}_n$
+where
+\begin{align*}
+\mathcal{S}_n & = \{ x_{1:T} \in \mathcal(X)^n: p(x_{1:T}) > 0 \} \quad n \geq 1 \\
+\mathcal{Q}_n & = \{ x_{1:T} \in \mathcal(X)^n:  p(x_{1:T-1}) q(x_n|x_{1:T-1}) > 0\} \quad n \geq 1
+\end{align*}
+\end{assumption}
+
+Essentially, Assumption \ref{asm:pap1} is saying that the we can use importance density $p(x_{1:T-1}) \times q(x_n|x_{1:T-1})$ to approximate $p(x_{1:T})$ and Assumption \ref{asm:pap2} basically has to do with resampling the $X_{1:T}$ according to the weights.
+
+\begin{assumption}\label{asm:pap2}
+For any $k=1,\ldots,N$ and $n=1,\ldots,T$, the resampling scheme satisfies 
+\begin{equation}
+E(O^k_n|{\bf W}_n) = NW^K_n
+\end{equation}
+and
+\begin{equation}
+r(A^K_n = m | {\bf W}_n) = W^m_n
+\end{equation}
+\end{assumption}
+
+\begin{assumption}\label{asm:pap3}
+$\exists\text{ a}$ sequence of constants $\{ C_n; n = 1,\ldots,\bar{T} \}$ for some integer $\bar{T}$ s.t. for any $x_{1:n} \in \mathcal{S}_n$
+\begin{equation}
+w_n(x_{1:n}) \leq C_n
+\end{equation}
+\end{assumption}
+
+Assumption \ref{asm:pap3} allows us to get a bound condition for the importance weights.
+
+
+\begin{theorem}
+Assume Assumption \ref{asm:pap2}. Then for an $N \geq 1$, the PIMH update is a standard IMH update on the extended space ${\bf X}$ with target density $\tilde{\pi}^N$ and proposal $q^N$.
+\end{theorem}
+
+
+\begin{theorem}
+Assume Assumptions \ref{asm:pap1} and \ref{asm:pap2}. Then 
+\begin{enumerate}
+  \item the PIMH sampler generates a sequence $\{ X_{1:T}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ X_{1:T}(i) \in \cdot \} \}$ satisfy 
+    \begin{equation*}
+    \| \mathcal{L}^N \{ X_{1:P}(i) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf
+    \end{equation*}
+  %
+  \item if assumption \ref{asm:pap3} holds, then there exists $\rho_T \in [0,1)$ s.t. $\forall i \geq 1$ and $x_{1:T} \in \mathcal{X}^T$ 
+    \begin{equation*}
+    \| \mathcal{L}^N \{ X_{1:T}(i) \in \cdot | X_{1:T}(0)=x_{1:T} \} - \pi(\cdot) \| \leq \rho^i_T
+    \end{equation*}
+\end{enumerate}
+\end{theorem}
+
+
+
+Also the authors claim that the acceptance probability converges to $1$ as $N \rightarrow \infty$ since $\hat{p}_\theta(y_{1:T})^*$ and $\hat{p}_\theta(y_{1:T})(i-1)$ are consistent estimators of $p_\theta(y_{1:T})$
+
+Note that if your only goal is to estimate $p_\theta(x_{1:T}|y_{1:T})$ then just using the SMC algorithm may be a better choice, but rather consider this an option as a step within a larger MCMC algorithm.
+
+
+%-----------------------------
+\subsubsection{Particle marginal Metropolis-Hastings sampler}
+With Particle marginal Metropolis-Hastings, the goal is to sample from $p(\theta, x_{1:T} | y_{1:T})$. In general here we assume we can sample from $p_\theta( x_{1:T} | y_{1:T})$, and we can decompose $p(\theta, x_{1:T} | y_{1:T}) = p(\theta | y_{1:T}) p_\theta(x_{1:T} | y_{1:T})$ so the focus is $p(\theta|y_{1:T})$. The intuitive proposal is
+\begin{equation*}
+  q \{ (\theta^*, x^*_{1:T}) | (\theta, x_{1:T}) \} = q(\theta^* | \theta) p_{\theta^*}(x^*_{1:T} | y_{1:T})
+\end{equation*}
+Then the acceptance ratio for the MH algorithm is
+\begin{equation}
+ \frac{p(\theta^*, x^*_{1:T})|(y_{1:T})}{p(\theta, x_{1:T})|(y_{1:T})}\frac{q \{ (\theta, x_{1:T}) | (\theta^*, x^*_{1:T}) \}}{q \{ (\theta^*, x^*_{1:T}) | (\theta, x_{1:T}) \}} = \frac{p_{\theta^*}(y_{1:T})p(\theta^*)}{p_\theta(y_{1:T})p(\theta)}\frac{q(\theta|\theta^*)}{q(\theta^*|\theta)}
+\end{equation}
+The looking at the acceptance probability, it is natural to use SMC approximation for $p_\theta(x_{1:T}|y_{1:T})$ and $p_\theta(y_{1:T})$ in the PMMH update.
+
+\begin{enumerate}
+  \item[] \textit{Step 1}: $i=0$
+  \begin{enumerate}
+    \item set $\theta(0)$ to some value
+    %
+    \item run SMC algorithm for $p_{\theta(0)}(x_{1:T}|y_{1:T})$, sample $X_{1:T}(0) \sim \hat{p}_{\theta(0)}(\cdot|y_{1:T})$ and $\hat{p}_\theta(y_{1:T})(0)$ is the marginal likelihood estimate
+  \end{enumerate}
+%
+  \item[] \textit{Step 2}: $i \geq 1$
+  \begin{enumerate}
+    \item sample $\theta^* \sim q\{ \cdot | \theta(i-1) \}$
+    %
+    \item run SMC algorithm for $p_{\theta^*}(x_{1:T}|y_{1:T})$ \\
+    sample $X^*_{1:T} \sim \hat{p}_{\theta^*}(\cdot|y_{1:T})$ and $\hat{p}_{\theta^*}(y_{1:T})$ is the marginal likelihood estimate
+    %
+    \item With probability,
+    \begin{equation*}
+       min \Bigg( 1, \frac{\hat{p}_{\theta^*}(y_{1:T})p(\theta^*)}{\hat{p}_{\theta(i-1)}(y_{1:T})p\{\theta(i-1)\}}\frac{q\{(\theta(i-1)|\theta^*)\}}{q\{(\theta^*|\theta(i-1))\}} \Bigg)
+    \end{equation*}
+    set $\theta(i) = \theta^*$, $X_{1:T}(i) = X^*_{1:T}$ and $\hat{p}_{\theta(i)}(y_{1:T})(i) = \hat{p}_{\theta^*}(y_{1:T})$ otherwise stay the same.
+  \end{enumerate}
+\end{enumerate}
+
+
+
+The following theorem shows the invariance of $p_\theta(x_{1:T}|y_{1:T})$ after PMMH update and erogodicity of PMMH. Assumption \ref{asm:pap5} has the same idea as Assumption \ref{asm:pap1} in that it allows us to use a importance density in approximation. Assumption \ref{asm:pap6} is a key assumption that ensures we have a converging MH algorithm.
+
+\begin{assumption}\label{asm:pap5}
+For any $\theta \in \mathcal{S}$, we have $\mathcal{S}^\theta_n \subseteq \mathcal{Q}^\theta_n$ for $n=1,\ldots,T$.
+\end{assumption}
+
+\begin{assumption}\label{asm:pap6}
+The MH sampler of target density $\pi(\theta)$ and proposal density $q(\theta^*|\theta)$ is irreducible and aperiodic (and hence converges for $\pi$ almost all starting points).
+\end{assumption}
+
+\begin{theorem}
+Assume assumption 2 holds. Then $\forall N \geq 1$
+\begin{enumerate}
+  \item the PMMH update is an MH update defined on the extended space $\Theta \times X$ with a target density $\tilde{\pi}$
+  %
+  \item additionally, if assumptions 5 and 6 are met, the PMMH sampler generates a sequence $\{ \theta(i), X_{1:T}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ \theta(i), X_{1:T}(i) \in \cdot \} \}$ satisfy 
+    \begin{equation*}
+    \| \mathcal{L}^N \{ \theta(i), X_{1:T}(i) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf
+    \end{equation*}
+\end{enumerate}
+\end{theorem}
+
+
+
+%-----------------------------
+\subsubsection{Particle Gibbs sampler}
+Lastly, a Particle Gibbs sampler is presented as an alternative to MMH for sampling $p(\theta, x_{1:T}|y_{1:T})$ by sampling from $p(\theta|x_{1:T},y_{1:T})$ and $p_\theta(x_{1:T}|y_{1:T})$. Usually it is possible to sample from $p(\theta|x_{1:T},y_{1:T})$ so it allows us to skip creating a proposal density to sample $\theta$. The usual usage of the SMC approximation to $p_\theta(x_{1:T}|y_{1:T})$ is not possible here since it will not give us an invariant posterior. The authors present a fix to this problem using a \textit{conditional} SMC update. The basic idea is similar except one $X_{1:T}$ with ancestry $B_{1:T}$ is ensured to be there through all the resampling steps. Here is the outline of the \textit{conditional} SMC update:
+
+\begin{enumerate}
+  \item[] \textit{Step 1} let $X_{1:T} = (X_1^{B_1}, X_1^{B_1},\ldots,X_T^{B_T})$ be a path with ancestry $B_{1:T}$
+%
+  \item[] \textit{Step 2}: $n=1$
+  \begin{enumerate}
+    \item for $k \neq B_1$, sample $X_1^k \sim q(\cdot|y_1)$
+    %
+    \item compute weights $w_1(X^k_1)$ from equation (6) and normalize the weights creating $W_1^k$
+  \end{enumerate}
+%
+  \item[] \textit{Step 3}: $2 \leq n \leq T$
+  \begin{enumerate}
+    \item for $k \neq B_n$, sample $A_{n-1}^k \sim \mathcal{F}(\cdot|{\bf W_{n-1}})$
+    %
+    \item for $k \neq B_n$, ample $X_n^k \sim q(\cdot|y_n, X_{n-1}^{A_{n-1}^k})$
+    %
+    \item compute weights $w_1(X^k_1)$ from equation (7) and normalize the weights creating $W_1^k$
+  \end{enumerate}
+\end{enumerate}
+
+Then the particle Gibbs sampler uses this like so:
+\begin{enumerate}
+  \item[] \textit{Step 1} $i = 0$, set $\theta(0)$, $X_{1:T}(0)$, $B_{1:T}(0)$ to some values
+%
+  \item[] \textit{Step 2}: $i \geq 1$
+  \begin{enumerate}
+    \item sample $\theta(i) \sim p\{ \cdot | y_{1:T}, X_{1:T}(i-1) \}$
+    %
+    \item run \textit{conditional} SMC for $p_{\theta(i)}(x_{1:T}|y_{1:T})$ conditional on $X_{1:T}(i-1)$ and $B_{1:T}(i-1)$
+    %
+    \item sample $X_{1:T}(i) \sim \hat{p}_{\theta(i)}(\cdot|y_{1:T})$
+  \end{enumerate}
+\end{enumerate}
+
+
+This theorem shows invariance of $p_\theta(x_{1:T}|y_{1:T})$ holds after a Particle Gibbs update and is erogodic, and Assumption \ref{asm:pap7} is the Gibbs equivalent of Assumption \ref{asm:pap5}.
+
+\begin{assumption}\label{asm:pap7}
+The Gibbs sampler defined by conditionals $\pi(\theta|x_{1:T})$ and $p_\theta(x_{1:T})$ is irreducible and aperiodic (and hence converges for $\pi$ almost all starting points).
+\end{assumption}
+
+\begin{theorem}
+Assume Assumption \ref{asm:pap2}. Then
+\begin{enumerate}
+  \item the PG updates defines a transition kernel on the extended space $\Theta \times {\bf X}$ of invariant density $\tilde{\pi}^N \quad \forall N \geq 1$
+  %
+  \item if Assumption \ref{asm:pap5}-\ref{asm:pap7} hold, the PG sampler generates a sequence $\{ \theta(i), X_{1:T}(i) \}$ whose marginal distributions $\{ \mathcal{L}^N \{ (\theta(i), X_{1:T}(i)) \in \cdot \} \}$ satisfy 
+    \begin{equation*}
+    \| \mathcal{L}^N \{ (\theta(i), X_{1:T}(i)) \in \cdot \} - \pi(\cdot) \| \rightarrow 0 \quad \quad \text{as }i \rightarrow \inf \quad \exists \quad N \geq 2
+    \end{equation*}
+\end{enumerate}
+\end{theorem}
+
+
+Also for both PMMH and PG samplers, the author presents a theorem which ensures consistent estimators.
+\begin{theorem}
+Assume Assumptions \ref{asm:pap2} - \ref{asm:pap5} and let $f:\Theta \times \mathcal{X}^T \rightarrow \Re$ be such that $E_\pi(|f|) < \infty$. Then when the PMMH or PG sampler is erogodic, the for any $N \geq 1$ or $N \geq 2$ respectively:
+\begin{equation*}
+  \frac{1}{L} \sum \limits_{i=1}^L \Big[ \sum \limits_{k=1}^N W^k_T(i) f\{ \theta(i), X^k_{1:T}(i) \} \Big] \rightarrow E_\pi(f) \text{ a.s. as }L\rightarrow \infty
+\end{equation*}
+\end{theorem}
+
+
+%-----------------------------
+\section{Conclusion}
+ In this review, we have outlined and given some intuition behind PMCMC. We have limited the review to the simple case using SSMs as the motivation. PMCMC methods have been generalized to handle models much more complicated the SSMs. While these methods are better than using SMC or MCMC alone, there are some issues as well. At every iteration in the PMCMC, $N$ particles need to be generated. This will lead to more computation and time in the algorithm. Overall, I feel like this a minor concern given the benefits of the PMCMC. We also gave theorems which helped back the properties of PMCMC in its various settings and showed the consistency of their estimators. This is only a breif introduction to PMCMC, but hopefully it helped develop some intuition behind the method.
+
+
+
+
+
+
+
+
+%------------------------------------%
+%           Bibliography             %
+%------------------------------------%
+
+\nocite{*}
+\bibliographystyle{siam}
+
+\bibliography{writeup_references}
+
+\end{document}
